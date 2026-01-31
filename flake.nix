@@ -45,6 +45,10 @@
               # cuda
               cudaPackages.cudatoolkit
               cudaPackages.cuda_cudart
+              # java
+              jdk
+              # python
+              python3
             ];
             shellHook = ''
               set -a
