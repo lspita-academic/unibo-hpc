@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # This script executes the parallel `omp-matmul` program with an
 # increasing number of threads p, from 1 up to the number of logical

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Last updated on 2024-11-13
 # Moreno Marzolla <https://www.moreno.marzolla.name/>

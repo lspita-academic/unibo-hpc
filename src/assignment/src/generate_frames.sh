@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Plot the output of `./k-means XX demo.in`; this script is run by
 # "make demo". It expects that there are files `clusters_*.txt` and

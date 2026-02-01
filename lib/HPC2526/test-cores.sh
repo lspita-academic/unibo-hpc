@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # This script test the performance of P/E-cores in modern CPUs.  It
 # launches another script `demo-strong-scaling.sh` with various
@@ -17,4 +17,3 @@ OMP_SCHEDULE=static run_test | tee test-cores-1.out
 OMP_SCHEDULE=static OMP_PLACES="0:8:2,16:8:1,1:8:2" | tee test-cores-2.out
 OMP_SCHEDULE=static OMP_PLACES="0:8:2,1:8:2,16:8:1" | tee test-cores-3.out
 OMP_SCHEDULE=dynamic run_test | tee test-cores-4.out
-
