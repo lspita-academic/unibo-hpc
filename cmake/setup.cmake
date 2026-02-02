@@ -26,6 +26,9 @@ enable_language(C)
 enable_language(CXX) # required for cuda, not used
 enable_language(CUDA)
 
+set(CMAKE_C_STANDARD 99)
+
+# CUDA
 # set host compiler for cuda
 foreach(lang C CXX)
     set(CMAKE_${lang}_HOST_COMPILER ${CMAKE_${lang}_COMPILER})
@@ -36,4 +39,5 @@ set(CMAKE_CUDA_USE_RESPONSE_FILE_FOR_INCLUDES OFF)
 set(CMAKE_CUDA_USE_RESPONSE_FILE_FOR_LIBRARIES OFF)
 set(CMAKE_CUDA_USE_RESPONSE_FILE_FOR_OBJECTS OFF)
 
-set(CMAKE_C_STANDARD 99)
+# set cuda flags
+set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Wno-deprecated-gpu-targets")
