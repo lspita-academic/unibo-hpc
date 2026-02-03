@@ -29,10 +29,6 @@ enable_language(CUDA)
 set(CMAKE_C_STANDARD 99)
 
 # CUDA
-# set host compiler for cuda
-foreach(lang C CXX)
-    set(CMAKE_${lang}_HOST_COMPILER ${CMAKE_${lang}_COMPILER})
-endforeach()
 # make cuda work with clangd
 # https://discourse.cmake.org/t/cmake-target-include-directories-doesnt-export-to-compile-commands-json-when-using-cuda/10072/12
 set(CMAKE_CUDA_USE_RESPONSE_FILE_FOR_INCLUDES OFF)
