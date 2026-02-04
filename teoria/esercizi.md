@@ -1,4 +1,4 @@
-# Risposte HPC
+# Esercizi
 
 <https://www.moreno.marzolla.name/teaching/HPC/esercizi.pdf>
 
@@ -32,15 +32,15 @@ Uno speedup superlineare si può ottenere quando la versione parallela presenta 
 int my_Reduce(const int *v) {
     int n = numero di processi mpi totale;
     int rank = rank mpi del processo attuale;
-    
-    // immaginando una struttura ad albero binario con il rank 0 come root, 
+
+    // immaginando una struttura ad albero binario con il rank 0 come root,
     // prendo i figli sinistro e destro del processo attuale
     int rank_left = (rank * 2) + 1;
     int rank_right = (rank * 2) + 2;
     int parent = (rank - 1) / 2; // arrotondato per difetto grazie alla divisione intera del C
-    
+
     int result = *v;
-    
+
     int val_left;
     int val_right;
     if (rank_left < n) {
@@ -53,7 +53,7 @@ int my_Reduce(const int *v) {
         MPI_Recv con buffer = &val_right, count = 1, tipo = MPI_INT, src = rank_right;
         result += val_right;
     }
-    
+
     if (rank > 0) {
         // esiste il padre, gli mando il valore
         MPI_Send con buffer = &result, count = 1, tipo = MPI_INT, dest = parent;
@@ -69,15 +69,15 @@ int my_Reduce(const int *v) {
 int search_k(int *v, int N, int k) {
     int rank = rank mpi del processo corrente;
     int comm_size = numero totale di processi mpi;
-    
+
     int n = N / comm_size;
     int data_buf[n]; // buffer dove ogni processo riceve la sua porzione di dati
     int indexes_buf[comm_size]; // buffer dove il processo 0 accumula i risultati di ogni processo
 
     int index = N; // N = not found
-    
+
     // distribuisci il vettore v tra i vari processi
-    MPI_Scatter con 
+    MPI_Scatter con
         src = 0,
         send buffer = v,
         send count = N,
@@ -85,7 +85,7 @@ int search_k(int *v, int N, int k) {
         recv buffer = data_buf,
         recv count = n,
         recv type = MPI_INT;
-    
+
     // cerca k nella propria porzione assegnata
     for (int i = 0; i < n; i++) {
         if (data_buf[i] == k) {
@@ -93,9 +93,9 @@ int search_k(int *v, int N, int k) {
             break;
         }
     }
-    
+
     // ERRORE: meglio usare MPI_Reduce con operazione min (richiede che il valore "not found" sia N e non -1)
-    
+
     // accumula nel processo 0 gli indici trovati
     MPI_Gather con
         dest = 0,
@@ -105,7 +105,7 @@ int search_k(int *v, int N, int k) {
         recv buffer = indexes_buf,
         recv count = comm_size,
         recv type = MPI_INT;
-    
+
     if (rank == 0) {
         // ritorna il primo indice valido tra i risultati
         for (int i = 0; i < comm_size; i++) {
@@ -115,7 +115,7 @@ int search_k(int *v, int N, int k) {
             }
         }
     }
-    
+
     return N; // not found
 }
 ```
