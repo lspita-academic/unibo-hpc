@@ -26,14 +26,14 @@ enable_language(C)
 enable_language(CXX) # required for cuda, not used
 enable_language(CUDA)
 
-# set host compiler for cuda
-foreach(lang C CXX)
-    set(CMAKE_${lang}_HOST_COMPILER ${CMAKE_${lang}_COMPILER})
-endforeach()
+set(CMAKE_C_STANDARD 99)
+
+# CUDA
 # make cuda work with clangd
 # https://discourse.cmake.org/t/cmake-target-include-directories-doesnt-export-to-compile-commands-json-when-using-cuda/10072/12
 set(CMAKE_CUDA_USE_RESPONSE_FILE_FOR_INCLUDES OFF)
 set(CMAKE_CUDA_USE_RESPONSE_FILE_FOR_LIBRARIES OFF)
 set(CMAKE_CUDA_USE_RESPONSE_FILE_FOR_OBJECTS OFF)
 
-set(CMAKE_C_STANDARD 99)
+# set cuda flags
+set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Wno-deprecated-gpu-targets")
