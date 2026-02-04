@@ -139,3 +139,11 @@ for (int i=0; i<n; i++) {
 ```
 
 ## Domanda 5
+
+```
+for (int idx= 0; idx< (b-a)*(d-c); idx++) {
+    int i = a + (idx / (d-c));
+    int j = c + (idx % (d-c));
+    f(i, j);
+}
+```
