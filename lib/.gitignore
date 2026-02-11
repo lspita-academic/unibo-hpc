@@ -1,0 +1,11 @@
+# compiled lib files
+/**/*
+!/**/*.*
+!/**/Makefile
+!/**/README
+!/**/
+/**/*.o
+/**/*.out
+/**/*.class
+/**/*.lst
+/**/*.s
