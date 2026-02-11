@@ -26,8 +26,6 @@ enable_language(C)
 enable_language(CXX) # required for cuda, not used
 enable_language(CUDA)
 
-set(SRC_DIR lab)
-
 set(CMAKE_C_STANDARD 99)
 
 # CUDA

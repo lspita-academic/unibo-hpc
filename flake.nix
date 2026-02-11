@@ -49,6 +49,9 @@
               jdk
               # python
               python3
+              # image manipulation
+              ffmpeg
+              gnuplot
             ];
             shellHook = ''
               set -a

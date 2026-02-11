@@ -1,0 +1,9 @@
+# keep results because of possible long computation (binaries have no extension)
+*.out
+
+# video demo
+centroids_*.txt
+clusters_*.txt
+demo.mp4
+demo.out
+img_*.png
