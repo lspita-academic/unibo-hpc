@@ -91,6 +91,8 @@ Parameters:
 
 An independent binary for input generation (provided by the professor) is also present among the other targets.
 
+This is included to allow the autogeneration of the demo input file to always have an example to run even if no file is provided.
+
 ### Build
 
 ```sh
