@@ -29,7 +29,7 @@ Parameters:
 
 - `<variant>`: Variant of the program, either serial, omp, mpi or cuda
 
-A default `build` target is also provided to build all binaries, including [inputgen](README#Inputgen).
+A default `build` target is also provided to build all binaries, including [inputgen](#inputgen).
 
 ## Run
 
@@ -51,7 +51,7 @@ Parameters:
 
 ### Manual
 
-All binaries are stored in the [BIN_DIR](README#Parameters) directory and follow the assignment specification for the parameters.
+All binaries are stored in the [BIN_DIR](#parameters) directory and follow the assignment specification for the parameters.
 
 ```sh
 ./bin/<variant>-k-means <K> <INPUT> <OUTPUT>
