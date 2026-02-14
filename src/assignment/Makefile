@@ -68,7 +68,19 @@ MPI_OBJ:=$(call src_to_obj,$(MPI_MAIN))
 INPUTGEN_OBJ:=$(call src_to_obj,$(INPUTGEN_MAIN))
 
 OBJECTS:=$(COMMON_OBJS) $(SERIAL_OBJ) $(OMP_OBJ) $(MPI_OBJ) $(INPUTGEN_OBJ)
-DEPS := $(OBJECTS:%.o=%.d)
+
+# dependencies
+define obj_to_deps
+$(1:%.o=%.d)
+endef
+
+COMMON_DEPS:=$(call obj_to_deps,$(COMMON_OBJS))
+SERIAL_DEPS:=$(call obj_to_deps,$(SERIAL_OBJ))
+OMP_DEPS:=$(call obj_to_deps,$(OMP_OBJ))
+MPI_DEPS:=$(call obj_to_deps,$(MPI_OBJ))
+INPUTGEN_DEPS:=$(call obj_to_deps,$(INPUTGEN_OBJ))
+
+DEPENDENCIES:=$(call obj_to_deps,$(OBJECTS))
 
 # binaries
 define src_to_bin
@@ -119,20 +131,34 @@ $(eval $(call make_demo_target,mpi))
 clean:
 	rm -f $(OBJECTS)
 	rm -f $(BINARIES)
-	rm -f $(DEMO_DIR)/*
+	rm -f $(DEPENDENCIES)
+	rm -f $(DEMO_DIR)/{clusters_*.txt,img_*.png,centroids_*.txt}
 
 # create directories
 $(BUILD_DIR)/ $(BIN_DIR)/ $(DEMO_DIR)/ $(TESTS_DIR)/:
 	mkdir -p $@
 
+# create demo files
+$(DEMO_IN): $(INPUTGEN_BIN) | $(DEMO_DIR)/
+	$< $(DEMO_POINTS) 2 $(DEMO_CLUSTERS) > $@
+
+# compile dependencies
+# https://gcc.gnu.org/onlinedocs/gcc-4.3.2/cpp/Invocation.html
+$(OMP_DEPS): CFLAGS+=$(OMP_FLAGS)
+
+$(MPI_DEPS): CC:=$(MPICC)
+
+$(BUILD_DIR)/%.d: $(SRC_DIR)/%.c | $(BUILD_DIR)/
+	$(CC) $(CFLAGS) -MM -MQ '$(call src_to_obj,$<)' -c $< -MF $@
+
+-include $(DEPENDENCIES)
+
 # compile objects
-$(OMP_OBJ): $(OMP_MAIN) | $(BUILD_DIR)/
-	$(CC) $(CFLAGS) $(OMP_FLAGS) -c $< -o $@
+$(OMP_OBJ): CFLAGS+=$(OMP_FLAGS)
 
-$(MPI_OBJ): $(MPI_MAIN) | $(BUILD_DIR)/
-	$(MPICC) $(CFLAGS) -c $< -o $@
+$(MPI_OBJ): CC:=$(MPICC)
 
-$(SERIAL_OBJ) $(INPUTGEN_OBJ) $(COMMON_OBJS): $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c | $(BUILD_DIR)/
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c $(BUILD_DIR)/%.d | $(BUILD_DIR)/
 	$(CC) $(CFLAGS) -c $< -o $@
 
 # compile binaries
@@ -147,7 +173,3 @@ $(MPI_BIN): $(MPI_OBJ) $(COMMON_OBJS) | $(BIN_DIR)/
 
 $(INPUTGEN_BIN): $(INPUTGEN_OBJ) | $(BIN_DIR)/
 	$(CC) $(CFLAGS) $^ -o $@
-
-# create demo files
-$(DEMO_IN): $(INPUTGEN_BIN) | $(DEMO_DIR)/
-	$< $(DEMO_POINTS) 2 $(DEMO_CLUSTERS) > $@
