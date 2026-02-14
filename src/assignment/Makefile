@@ -44,9 +44,12 @@ CUDA_MAIN:=$(call make_src,cuda-k-means.cu)
 INPUTGEN_MAIN:=$(call make_src,inputgen.c)
 
 MAIN_SRCS:=$(SERIAL_MAIN) $(OMP_MAIN) $(MPI_MAIN) $(CUDA_MAIN) $(INPUTGEN_MAIN)
-COMMON_SRCS:=$(filter-out $(MAIN_SRCS),$(wildcard $(SRC_DIR)/*.c $(SRC_DIR)/*.cu))
+OMP_SRCS:=$(filter-out $(OMP_MAIN),$(wildcard $(SRC_DIR)/omp-*.c))
+MPI_SRCS:=$(filter-out $(MPI_MAIN),$(wildcard $(SRC_DIR)/mpi-*.c))
+CUDA_SRCS:=$(filter-out $(CUDA_MAIN),$(wildcard $(SRC_DIR)/cuda-*.c $(SRC_DIR)/cuda-*.cu))
+COMMON_SRCS:=$(filter-out $(MAIN_SRCS) $(OMP_SRCS) $(MPI_SRCS) $(CUDA_SRCS),$(wildcard $(SRC_DIR)/*.c $(SRC_DIR)/*.cu))
 
-SRCS:=$(MAIN_SRCS) $(COMMON_SRCS)
+SRCS:=$(MAIN_SRCS) $(OMP_SRCS) $(MPI_SRCS) $(CUDA_SRCS) $(COMMON_SRCS)
 
 # object files
 define src_to_obj
@@ -60,25 +63,31 @@ CUDA_OBJ:=$(call src_to_obj,$(CUDA_MAIN))
 INPUTGEN_OBJ:=$(call src_to_obj,$(INPUTGEN_MAIN))
 
 MAIN_OBJS:=$(call src_to_obj,$(MAIN_SRCS))
+OMP_OBJS:=$(call src_to_obj,$(OMP_SRCS))
+MPI_OBJS:=$(call src_to_obj,$(MPI_SRCS))
+CUDA_OBJS:=$(call src_to_obj,$(CUDA_SRCS))
 COMMON_OBJS:=$(call src_to_obj,$(COMMON_SRCS))
 
-OBJS:=$(MAIN_OBJS) $(COMMON_OBJS)
+OBJS:=$(MAIN_OBJS) $(OMP_OBJS) $(MPI_OBJS) $(CUDA_OBJS) $(COMMON_OBJS)
 
 # dependencies
 define obj_to_deps
 $(1:%.o=%.d)
 endef
 
-SERIAL_DEPS:=$(call obj_to_deps,$(SERIAL_OBJ))
-OMP_DEPS:=$(call obj_to_deps,$(OMP_OBJ))
-MPI_DEPS:=$(call obj_to_deps,$(MPI_OBJ))
-CUDA_DEPS:=$(call obj_to_deps,$(CUDA_OBJ))
-INPUTGEN_DEPS:=$(call obj_to_deps,$(INPUTGEN_OBJ))
+SERIAL_DEP:=$(call obj_to_deps,$(SERIAL_OBJ))
+OMP_DEP:=$(call obj_to_deps,$(OMP_OBJ))
+MPI_DEP:=$(call obj_to_deps,$(MPI_OBJ))
+CUDA_DEP:=$(call obj_to_deps,$(CUDA_OBJ))
+INPUTGEN_DEP:=$(call obj_to_deps,$(INPUTGEN_OBJ))
 
 MAIN_DEPS:=$(call obj_to_deps,$(MAIN_OBJS))
+OMP_DEPS:=$(call obj_to_deps,$(OMP_OBJS))
+MPI_DEPS:=$(call obj_to_deps,$(MPI_OBJS))
+CUDA_DEPS:=$(call obj_to_deps,$(CUDA_OBJS))
 COMMON_DEPS:=$(call obj_to_deps,$(COMMON_OBJS))
 
-DEPS:=$(MAIN_DEPS) $(COMMON_DEPS)
+DEPS:=$(MAIN_DEPS) $(OMP_DEPS) $(MPI_DEPS) $(CUDA_DEPS) $(COMMON_DEPS)
 
 # binaries
 define obj_to_bin
@@ -150,25 +159,20 @@ $(DEMO_INPUT): run-inputgen | $(DEMO_DIR)/
 	$(MAKE) run-inputgen POINTS=$(DEMO_POINTS) DIMS=2 CLUSTERS=$(DEMO_CLUSTERS) OUTFILE=$@
 
 # override compilers and flags
-define targets_matching
-$(filter $(BUILD_DIR)/$(1).o,$(OBJS)) \
-$(filter $(BUILD_DIR)/$(1).d,$(DEPS)) \
-$(filter $(BIN_DIR)/$(1),$(BINS)) \
-$(filter $(SRC_DIR)/$(1).c,$(SRCS)) \
-$(filter $(SRC_DIR)/$(1).cu,$(SRCS))
-endef
-
-OMP_TARGETS:=$(call targets_matching,omp-%)
-MPI_TARGETS:=$(call targets_matching,mpi-%)
-CUDA_TARGETS:=$(call targets_matching,cuda-%)
+OMP_TARGETS:=$(OMP_BIN) $(OMP_SRCS) $(OMP_OBJS) $(OMP_DEPS)
+MPI_TARGETS:=$(MPI_BIN) $(MPI_SRCS) $(MPI_OBJS) $(MPI_DEPS)
+CUDA_TARGETS:=$(CUDA_BIN) $(CUDA_SRCS) $(CUDA_OBJS) $(CUDA_DEPS)
 
 $(OMP_TARGETS): CFLAGS+=$(OMP_FLAGS)
+$(OMP_TARGETS): EXTRA_OBJS:=$(OMP_OBJS)
 
 $(MPI_TARGETS): CC:=$(MPICC)
+$(MPI_TARGETS): EXTRA_OBJS:=$(MPI_OBJS)
 
 $(CUDA_TARGETS): CC:=$(NVCC)
 $(CUDA_TARGETS): CFLAGS:=$(filter-out -std=%,$(CFLAGS))
 $(CUDA_TARGETS): CFLAGS+=$(CUDA_FLAGS)
+$(CUDA_TARGETS): EXTRA_OBJS:=$(CUDA_OBJS)
 
 $(INPUTGEN_BIN): COMMON_OBJS:=
 
@@ -184,5 +188,5 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c $(BUILD_DIR)/%.d | $(BUILD_DIR)/
 	$(CC) $(CFLAGS) -c $< -o $@
 
 # compile binaries
-$(BIN_DIR)/%: $(BUILD_DIR)/%.o $(COMMON_OBJS) | $(BIN_DIR)/
+$(BIN_DIR)/%: $(BUILD_DIR)/%.o $(COMMON_OBJS) $(EXTRA_OBJS) | $(BIN_DIR)/
 	$(CC) $(CFLAGS) $^ -o $@
