@@ -82,11 +82,11 @@ INPUTGEN_BIN=$(call src_to_bin,$(INPUTGEN_MAIN))
 BINARIES:=$(SERIAL_BIN) $(OMP_BIN) $(MPI_BIN) $(INPUTGEN_BIN)
 
 # targets
-.PHONY: all build-all build-serial build-omp build-mpi build-inputgen
+.PHONY: all build build-serial build-omp build-mpi build-inputgen
 
-all: build-all
+all: build
 
-build-all: build-serial build-omp build-mpi build-inputgen
+build: build-serial build-omp build-mpi build-inputgen
 
 build-serial: $(SERIAL_BIN)
 build-omp: $(OMP_BIN)
@@ -121,32 +121,32 @@ clean:
 	rm -f $(DEMO_DIR)/*
 
 # create directories
-$(BUILD_DIR) $(BIN_DIR) $(DEMO_DIR) $(TESTS_DIR):
+$(BUILD_DIR)/ $(BIN_DIR)/ $(DEMO_DIR)/ $(TESTS_DIR)/:
 	mkdir -p $@
 
 # compile objects
-$(OMP_OBJ): $(OMP_MAIN) | $(BUILD_DIR)
+$(OMP_OBJ): $(OMP_MAIN) | $(BUILD_DIR)/
 	$(CC) $(CFLAGS) $(OMP_FLAGS) -c $< -o $@
 
-$(MPI_OBJ): $(MPI_MAIN) | $(BUILD_DIR)
+$(MPI_OBJ): $(MPI_MAIN) | $(BUILD_DIR)/
 	$(MPICC) $(CFLAGS) -c $< -o $@
 
-$(SERIAL_OBJ) $(INPUTGEN_OBJ) $(COMMON_OBJS): $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c | $(BUILD_DIR)
+$(SERIAL_OBJ) $(INPUTGEN_OBJ) $(COMMON_OBJS): $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c | $(BUILD_DIR)/
 	$(CC) $(CFLAGS) -c $< -o $@
 
 # compile binaries
-$(SERIAL_BIN): $(SERIAL_OBJ) $(COMMON_OBJS) | $(BIN_DIR)
+$(SERIAL_BIN): $(SERIAL_OBJ) $(COMMON_OBJS) | $(BIN_DIR)/
 	$(CC) $(CFLAGS) $^ -o $@
 
-$(OMP_BIN): $(OMP_OBJ) $(COMMON_OBJS) | $(BIN_DIR)
+$(OMP_BIN): $(OMP_OBJ) $(COMMON_OBJS) | $(BIN_DIR)/
 	$(CC) $(CFLAGS) $(OMP_FLAGS) $^ -o $@
 
-$(MPI_BIN): $(MPI_OBJ) $(COMMON_OBJS) | $(BIN_DIR)
+$(MPI_BIN): $(MPI_OBJ) $(COMMON_OBJS) | $(BIN_DIR)/
 	$(MPICC) $(CFLAGS) $^ -o $@
 
-$(INPUTGEN_BIN): $(INPUTGEN_OBJ) | $(BIN_DIR)
+$(INPUTGEN_BIN): $(INPUTGEN_OBJ) | $(BIN_DIR)/
 	$(CC) $(CFLAGS) $^ -o $@
 
 # create demo files
-$(DEMO_IN): $(INPUTGEN_BIN) | $(DEMO_DIR)
+$(DEMO_IN): $(INPUTGEN_BIN) | $(DEMO_DIR)/
 	$< $(DEMO_POINTS) 2 $(DEMO_CLUSTERS) > $@
