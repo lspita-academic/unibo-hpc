@@ -3,10 +3,12 @@
 #endif
 
 #include <stdio.h>
+#include <stdlib.h>
 
-#include "hpc.h"
+// #include "hpc.h"
+#include "safety.h"
 
 int main(void) {
   printf("Hello, World!\n");
-  return 0;
+  safe_exit(EXIT_SUCCESS);
 }

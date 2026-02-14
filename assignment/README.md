@@ -7,6 +7,16 @@ This repository contains the source code for the final project of the HPC 2025/2
 
 A serial version different from the one provided from the professor is also implemented, because I wanted to structure and modularize the code my way. The core logic behind is still the same.
 
+## Notes
+
+Weak linking is used to allow different sources to be compiled with different libraries. This allows to check if certain variant-specific functions are available and make decisions on which implementation to use.
+
+To allow weak linking, pragma directives are used instead of gcc attributes to allow for better compatibility with different compilers.
+
+See: [GCC weak linking pragma directive](https://gcc.gnu.org/onlinedocs/gcc/Weak-Pragmas.html).
+
+An example can be found in [safety.c](src/safety.c).
+
 ## Build
 
 ```sh
