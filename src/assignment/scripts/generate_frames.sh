@@ -7,11 +7,13 @@
 #
 # Last modified on 2025-12-03 by Moreno Marzolla.
 
-for CLU in clusters_*.txt; do
+DIR=${1:-"."}
+
+for CLU in "${DIR}/clusters_*.txt"; do
     # Remove from $CLU every character which is NOT a digit
     STEP=`echo $CLU | tr -c -d [0-9]`
-    CEN="centroids_${STEP}.txt"
-    IMG="img_${STEP}.png"
+    CEN="${DIR}/centroids_${STEP}.txt"
+    IMG="${DIR}/img_${STEP}.png"
     cat <<EOF | gnuplot
 set term png linewidth 1.5 size 1024,768
 set output "$IMG"

@@ -1,3 +1,9 @@
 # output directories
 build/
 bin/
+demo/
+
+# out files
+*.out
+!tests/*.out
+!tests/*.in
