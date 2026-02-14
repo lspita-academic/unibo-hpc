@@ -58,7 +58,7 @@ SOURCES:=$(MAIN_SOURCES) $(COMMON_SOURCES)
 
 # object files
 define src_to_obj
-$(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(1))
+$(1:$(SRC_DIR)/%.c=$(BUILD_DIR)/%.o)
 endef
 
 COMMON_OBJS:=$(call src_to_obj,$(COMMON_SOURCES))
@@ -68,10 +68,11 @@ MPI_OBJ:=$(call src_to_obj,$(MPI_MAIN))
 INPUTGEN_OBJ:=$(call src_to_obj,$(INPUTGEN_MAIN))
 
 OBJECTS:=$(COMMON_OBJS) $(SERIAL_OBJ) $(OMP_OBJ) $(MPI_OBJ) $(INPUTGEN_OBJ)
+DEPS := $(OBJECTS:%.o=%.d)
 
 # binaries
 define src_to_bin
-$(patsubst $(SRC_DIR)/%.c,$(BIN_DIR)/%,$(1))
+$(1:$(SRC_DIR)/%.c=$(BIN_DIR)/%)
 endef
 
 SERIAL_BIN=$(call src_to_bin,$(SERIAL_MAIN))
