@@ -1,6 +1,7 @@
+// Ludovico Maria Spitaleri 0001114169
+
 #include "safety.h"
 
-#include <stdio.h>
 #include <stdlib.h>
 
 #include "mpi-utils.h"
@@ -9,10 +10,16 @@
 
 void safe_exit(int status) {
   if (mpi_safe_exit != NULL) {
-    puts("MPI");
     mpi_safe_exit(status);
   } else {
-    puts("Default");
     exit(status);
   }
+}
+
+void* safe_malloc(size_t size) {
+  void* ptr = malloc(size);
+  if (ptr == NULL) {
+    safe_exit(EXIT_FAILURE);
+  }
+  return ptr;
 }
