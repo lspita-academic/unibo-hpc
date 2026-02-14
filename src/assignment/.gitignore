@@ -3,6 +3,6 @@ build/
 bin/
 demo/
 
-# out files
+# test files
 *.out
 *.in
