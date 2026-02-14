@@ -19,6 +19,8 @@ An example can be found in [safety.c](src/safety.c).
 
 ## Build
 
+### Make
+
 ```sh
 make build-<variant>
 ```
@@ -30,6 +32,8 @@ Parameters:
 A default `build` target is also provided to build all binaries, including [inputgen](README#Inputgen).
 
 ## Run
+
+### Make
 
 ```sh
 make run-<variant>
@@ -44,6 +48,14 @@ Parameters:
 
 > [!hint] Automatic dependency handling
 > The `run` targets automatically build all the necessary files they need, so it's not required to run the corresponding `build` target before.
+
+### Manual
+
+All binaries are stored in the [BIN_DIR](README#Parameters) directory and follow the assignment specification for the parameters.
+
+```sh
+./bin/<variant>-k-means <K> <INPUT> <OUTPUT>
+```
 
 ## Demo
 
