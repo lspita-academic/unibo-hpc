@@ -7,22 +7,6 @@ This repository contains the source code for the final project of the HPC 2025/2
 
 A serial version different from the one provided from the professor is also implemented, because I wanted to structure and modularize the code my way. The core logic behind is still the same.
 
-## Notes
-
-### Weak Linking
-
-Weak linking is used to allow different sources to be compiled with different libraries. This allows to check if certain variant-specific functions are available and make decisions on which implementation to use.
-
-To allow weak linking, pragma directives are used instead of gcc attributes to allow for better compatibility with different compilers.
-
-See: [GCC weak linking pragma directive](https://gcc.gnu.org/onlinedocs/gcc/Weak-Pragmas.html).
-
-An example can be found in [safety.c](src/safety.c).
-
-### Formatting style
-
-The code formatting is based on the Google C++ style guide provided by the [clang-format preset](https://clang.llvm.org/docs/ClangFormatStyleOptions.html#basedonstyle) with slight modifications.
-
 ## Build
 
 ### Make
@@ -107,8 +91,6 @@ make build-inputgen
 
 ### Run
 
-### Manual
-
 The binary is stored in the [BIN_DIR](<#Make targets parameters>) alongside the others.
 
 ```sh
@@ -121,7 +103,34 @@ Parameters:
 - `DIMS`: Number of dimensions of each point (required)
 - `CLUSTERS`: Number of clusters to use (required)
 
-## Compilation database
+## Clean
+
+Artifacts cleaning is splitted into multiple targets.
+
+```sh
+make clean-build # cleans all build files and compiled binaries
+make clean-compiledb # cleans the compilation database
+make clean-demo # cleans the demo files
+make clean # cleans all artifacts
+```
+
+## Notes
+
+### Weak Linking
+
+Weak linking is used to allow different sources to be compiled with different libraries. This allows to check if certain variant-specific functions are available and make decisions on which implementation to use.
+
+To allow weak linking, pragma directives are used instead of gcc attributes to allow for better compatibility with different compilers.
+
+See: [GCC weak linking pragma directive](https://gcc.gnu.org/onlinedocs/gcc/Weak-Pragmas.html).
+
+An example can be found in [safety.c](src/safety.c).
+
+### Formatting style
+
+The code formatting is based on the Google C++ style guide provided by the [clang-format preset](https://clang.llvm.org/docs/ClangFormatStyleOptions.html#basedonstyle) with slight modifications.
+
+### Compilation database
 
 A make target to create a compilation database from the build target for clangd is provided.
 
@@ -135,18 +144,7 @@ This target requires [bear](https://github.com/rizsotto/Bear) to be installed.
 > The compilation database is created in append mode to allow for faster incremental builds.
 > It is suggested to clean all build artifacts before the first build.
 
-## Clean
-
-Artifacts cleaning is splitted into multiple targets.
-
-```sh
-make clean-build # cleans all build files and compiled binaries
-make clean-compiledb # cleans the compilation database
-make clean-demo # cleans the demo files
-make clean # cleans all artifacts
-```
-
-## Make targets parameters
+### Make targets parameters
 
 The parameters used by the targets are simple makefile variables. They can be overriden with environment variables using the same name or by providing them after the target name.
 
