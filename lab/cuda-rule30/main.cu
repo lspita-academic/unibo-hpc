@@ -214,8 +214,9 @@ void step(cell_t* cur, cell_t* next, int ext_n) {
   }
 }
 
-__global__ void step_kernel(cell_t* const cur, cell_t* const next,
-                            const int left, const int right) {
+__global__ void step_kernel(
+    cell_t* const cur, cell_t* const next, const int left, const int right
+) {
   const int thread_idx = threadIdx.x;
   const int global_idx = (blockIdx.x * blockDim.x) + thread_idx;
   if (global_idx < left || global_idx > right) {
@@ -243,8 +244,9 @@ void cuda_step(cell_t* cur, cell_t* next, int ext_n) {
   cudaSafeCall(cudaMalloc(&d_cur, size));
   cudaSafeCall(cudaMalloc(&d_next, size));
   cudaSafeCall(cudaMemcpy(d_cur, cur, size, cudaMemcpyHostToDevice));
-  step_kernel<<<(ext_n + BLKDIM - 1) / BLKDIM, BLKDIM>>>(d_cur, d_next, LEFT,
-                                                         RIGHT);
+  step_kernel<<<(ext_n + BLKDIM - 1) / BLKDIM, BLKDIM>>>(
+      d_cur, d_next, LEFT, RIGHT
+  );
   cudaSafeCall(cudaMemcpy(next, d_next, size, cudaMemcpyDeviceToHost));
   cudaSafeCall(cudaFree(d_cur));
   cudaSafeCall(cudaFree(d_next));

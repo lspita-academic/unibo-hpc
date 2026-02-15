@@ -99,12 +99,26 @@ int main(int argc, char* argv[]) {
       case MASTER_RANK:
         value++;
         MPI_Send(&value, 1, MPI_INT, dest, VALUE_TAG, MPI_COMM_WORLD);
-        MPI_Recv(&value, 1, MPI_INT, source, VALUE_TAG, MPI_COMM_WORLD,
-                 MPI_STATUS_IGNORE);
+        MPI_Recv(
+            &value,
+            1,
+            MPI_INT,
+            source,
+            VALUE_TAG,
+            MPI_COMM_WORLD,
+            MPI_STATUS_IGNORE
+        );
         break;
       default:
-        MPI_Recv(&value, 1, MPI_INT, source, VALUE_TAG, MPI_COMM_WORLD,
-                 MPI_STATUS_IGNORE);
+        MPI_Recv(
+            &value,
+            1,
+            MPI_INT,
+            source,
+            VALUE_TAG,
+            MPI_COMM_WORLD,
+            MPI_STATUS_IGNORE
+        );
         value++;
         MPI_Send(&value, 1, MPI_INT, dest, VALUE_TAG, MPI_COMM_WORLD);
         break;

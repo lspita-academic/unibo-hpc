@@ -244,8 +244,12 @@ int main(int argc, char* argv[]) {
     n_inside = generate_points_functions[i](n_points);
     const double elapsed = omp_get_wtime() - tstart;
     const double pi_approx = 4.0 * n_inside / (double)n_points;
-    printf("PI approximation %f, exact %f, error %f%%\n", pi_approx, PI_EXACT,
-           100.0 * fabs(pi_approx - PI_EXACT) / PI_EXACT);
+    printf(
+        "PI approximation %f, exact %f, error %f%%\n",
+        pi_approx,
+        PI_EXACT,
+        100.0 * fabs(pi_approx - PI_EXACT) / PI_EXACT
+    );
     printf("Execution time %.3f\n", elapsed);
     puts("=== END ===");
   }

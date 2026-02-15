@@ -352,21 +352,27 @@ void read_pgm(FILE* f, PGM_image* img) {
     exit(EXIT_FAILURE);
   }
 #if _XOPEN_SOURCE < 600
-  img->bmap = (unsigned char*)malloc((img->width) * (img->height) *
-                                     sizeof(unsigned char));
+  img->bmap = (unsigned char*)malloc(
+      (img->width) * (img->height) * sizeof(unsigned char)
+  );
 #else
   /* The pointer img->bmap must be properly aligned to allow aligned
      SIMD load/stores to work. */
-  int ret = posix_memalign((void**)&(img->bmap), __BIGGEST_ALIGNMENT__,
-                           (img->width) * (img->height));
+  int ret = posix_memalign(
+      (void**)&(img->bmap), __BIGGEST_ALIGNMENT__, (img->width) * (img->height)
+  );
   assert(0 == ret);
 #endif
   assert(img->bmap != NULL);
   /* Get the binary data from the file */
   nread = fread(img->bmap, 1, (img->width) * (img->height), f);
   if ((img->width) * (img->height) != nread) {
-    fprintf(stderr, "FATAL: error reading input: expecting %d bytes, got %d\n",
-            (img->width) * (img->height), nread);
+    fprintf(
+        stderr,
+        "FATAL: error reading input: expecting %d bytes, got %d\n",
+        (img->width) * (img->height),
+        nread
+    );
     exit(EXIT_FAILURE);
   }
 }
@@ -480,7 +486,9 @@ int main(int argc, char* argv[]) {
     fprintf(
         stderr,
         "FATAL: width (%d) and height (%d) of the input image must be equal\n",
-        img.width, img.height);
+        img.width,
+        img.height
+    );
     return EXIT_FAILURE;
   }
 
@@ -505,8 +513,11 @@ int main(int argc, char* argv[]) {
 #endif
   fprintf(stderr, "    Iterations: %d\n", niter);
   fprintf(stderr, "  Width,Height: %d,%d\n", img.width, img.height);
-  fprintf(stderr, "      Mops/sec: %f\n",
-          1.0e-6 * img.width * img.height * niter / elapsed);
+  fprintf(
+      stderr,
+      "      Mops/sec: %f\n",
+      1.0e-6 * img.width * img.height * niter / elapsed
+  );
   fprintf(stderr, "Execution time  %.3f\n\n", elapsed);
 
   /**
@@ -529,8 +540,11 @@ int main(int argc, char* argv[]) {
 #endif
   fprintf(stderr, "    Iterations: %d\n", niter);
   fprintf(stderr, "  Width,Height: %d,%d\n", img.width, img.height);
-  fprintf(stderr, "      Mops/sec: %.4f\n",
-          1.0e-6 * img.width * img.height * niter / elapsed);
+  fprintf(
+      stderr,
+      "      Mops/sec: %.4f\n",
+      1.0e-6 * img.width * img.height * niter / elapsed
+  );
   fprintf(stderr, "Execution time  %.3f\n\n", elapsed);
 
   free_pgm(&img);

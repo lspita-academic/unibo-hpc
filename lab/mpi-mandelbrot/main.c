@@ -108,12 +108,24 @@ typedef struct __attribute__((__packed__)) {
 /* color gradient from
  * https://stackoverflow.com/questions/16500656/which-color-gradient-is-used-to-color-mandelbrot-in-wikipedia
  */
-const pixel_t colors[] = {{66, 30, 15}, /* r, g, b */
-                          {25, 7, 26},     {9, 1, 47},      {4, 4, 73},
-                          {0, 7, 100},     {12, 44, 138},   {24, 82, 177},
-                          {57, 125, 209},  {134, 181, 229}, {211, 236, 248},
-                          {241, 233, 191}, {248, 201, 95},  {255, 170, 0},
-                          {204, 128, 0},   {153, 87, 0},    {106, 52, 3}};
+const pixel_t colors[] = {
+    {66, 30, 15}, /* r, g, b */
+    {25, 7, 26},
+    {9, 1, 47},
+    {4, 4, 73},
+    {0, 7, 100},
+    {12, 44, 138},
+    {24, 82, 177},
+    {57, 125, 209},
+    {134, 181, 229},
+    {211, 236, 248},
+    {241, 233, 191},
+    {248, 201, 95},
+    {255, 170, 0},
+    {204, 128, 0},
+    {153, 87, 0},
+    {106, 52, 3}
+};
 const int NCOLORS = sizeof(colors) / sizeof(colors[0]);
 
 /*
@@ -230,15 +242,17 @@ int main(int argc, char* argv[]) {
 
   draw_lines(ystart[my_rank], yend[my_rank], local_bitmap, xsize, ysize);
 
-  MPI_Gatherv(local_bitmap,    /* sendbuf      */
-              counts[my_rank], /* sendcount    */
-              MPI_BYTE,        /* datatype     */
-              bitmap,          /* recvbuf      */
-              counts,          /* recvcounts[] */
-              displs,          /* displacements[] */
-              MPI_BYTE,        /* datatype     */
-              0,               /* root         */
-              MPI_COMM_WORLD);
+  MPI_Gatherv(
+      local_bitmap,    /* sendbuf      */
+      counts[my_rank], /* sendcount    */
+      MPI_BYTE,        /* datatype     */
+      bitmap,          /* recvbuf      */
+      counts,          /* recvcounts[] */
+      displs,          /* displacements[] */
+      MPI_BYTE,        /* datatype     */
+      0,               /* root         */
+      MPI_COMM_WORLD
+  );
 
   const double elapsed = MPI_Wtime() - tstart;
 

@@ -102,8 +102,14 @@ int check(float* r, int n) {
   for (int i = 0; i < n; i++) {
     for (int j = 0; j < n; j++) {
       if (fabsf(r[i * n + j] - 2.0f * k) > 1e-5) {
-        fprintf(stderr, "Check FAILED: r[%d][%d] = %f, expeted %f\n", i, j,
-                r[i * n + j], 2.0 * k);
+        fprintf(
+            stderr,
+            "Check FAILED: r[%d][%d] = %f, expeted %f\n",
+            i,
+            j,
+            r[i * n + j],
+            2.0 * k
+        );
         return 0;
       }
       k = (k + 1) % 1000;

@@ -151,8 +151,9 @@ void fill(int* x, int n) {
 int check(const int* x, int n) {
   for (int i = 0; i < n; i++) {
     if (x[i] != n - 1 - i) {
-      fprintf(stderr, "Test FAILED: x[%d]=%d, expected %d\n", i, x[i],
-              n - 1 - i);
+      fprintf(
+          stderr, "Test FAILED: x[%d]=%d, expected %d\n", i, x[i], n - 1 - i
+      );
       return 0;
     }
   }
@@ -175,8 +176,9 @@ int main(int argc, char* argv[]) {
   }
 
   if (n > MAX_N) {
-    fprintf(stderr, "FATAL: input too large (maximum allowed length is %d)\n",
-            MAX_N);
+    fprintf(
+        stderr, "FATAL: input too large (maximum allowed length is %d)\n", MAX_N
+    );
     return EXIT_FAILURE;
   }
 

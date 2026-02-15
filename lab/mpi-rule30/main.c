@@ -210,8 +210,9 @@ void step(const cell_t* cur, cell_t* next, int ext_n) {
     const cell_t east = cur[i - 1];
     const cell_t center = cur[i];
     const cell_t west = cur[i + 1];
-    next[i] = ((east && !center && !west) || (!east && !center && west) ||
-               (!east && center && !west) || (!east && center && west));
+    next[i] =
+        ((east && !center && !west) || (!east && !center && west) ||
+         (!east && center && !west) || (!east && center && west));
   }
 }
 
@@ -269,8 +270,11 @@ int main(int argc, char* argv[]) {
   }
 
   if ((0 == my_rank) && (width % comm_sz)) {
-    printf("The image width (%d) must be a multiple of comm_sz (%d)\n", width,
-           comm_sz);
+    printf(
+        "The image width (%d) must be a multiple of comm_sz (%d)\n",
+        width,
+        comm_sz
+    );
     MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
   }
 
@@ -360,14 +364,15 @@ int main(int argc, char* argv[]) {
   const int LOCAL_RIGHT = local_ext_width - HALO - 1;
   const int LOCAL_RIGHT_GHOST = LOCAL_RIGHT + 1;
 
-  MPI_Scatter(&cur[LEFT],              // sendbuf
-              local_width,             // sendcount
-              MPI_CHAR,                // sendtype
-              &local_cur[LOCAL_LEFT],  // recvbuf
-              local_width,             // recvcount
-              MPI_CHAR,                // recvtype
-              0,                       // root
-              MPI_COMM_WORLD           // comm
+  MPI_Scatter(
+      &cur[LEFT],              // sendbuf
+      local_width,             // sendcount
+      MPI_CHAR,                // sendtype
+      &local_cur[LOCAL_LEFT],  // recvbuf
+      local_width,             // recvcount
+      MPI_CHAR,                // recvtype
+      0,                       // root
+      MPI_COMM_WORLD           // comm
   );
 
   for (int s = 0; s < nsteps; s++) {
@@ -388,18 +393,19 @@ int main(int argc, char* argv[]) {
                        local_cur[]
 
     */
-    MPI_Sendrecv(&local_cur[LOCAL_RIGHT],       // sendbuf
-                 HALO,                          // sendcount
-                 MPI_CHAR,                      // sendtype
-                 rank_next,                     // dest
-                 ASCENDING_ORDER_TAG,           // sendtag
-                 &local_cur[LOCAL_LEFT_GHOST],  // recvbuf
-                 HALO,                          // recvcount
-                 MPI_CHAR,                      // recvtype
-                 rank_prev,                     // source
-                 ASCENDING_ORDER_TAG,           // recvtag
-                 MPI_COMM_WORLD,                // comm
-                 MPI_STATUS_IGNORE              // status
+    MPI_Sendrecv(
+        &local_cur[LOCAL_RIGHT],       // sendbuf
+        HALO,                          // sendcount
+        MPI_CHAR,                      // sendtype
+        rank_next,                     // dest
+        ASCENDING_ORDER_TAG,           // sendtag
+        &local_cur[LOCAL_LEFT_GHOST],  // recvbuf
+        HALO,                          // recvcount
+        MPI_CHAR,                      // recvtype
+        rank_prev,                     // source
+        ASCENDING_ORDER_TAG,           // recvtag
+        MPI_COMM_WORLD,                // comm
+        MPI_STATUS_IGNORE              // status
     );
 
     /* send left boundary to left neighbor; receive right boundary
@@ -412,18 +418,19 @@ int main(int argc, char* argv[]) {
        ...---+-+     +-+--------+-+     +-+---...
                        local_cur
     */
-    MPI_Sendrecv(&local_cur[LOCAL_LEFT],         // sendbuf
-                 HALO,                           // sendcount
-                 MPI_CHAR,                       // sendtype
-                 rank_prev,                      // dest
-                 DESCENDING_ORDER_TAG,           // sendtag
-                 &local_cur[LOCAL_RIGHT_GHOST],  // recvbuf
-                 HALO,                           // recvcount
-                 MPI_CHAR,                       // recvtype
-                 rank_next,                      // source
-                 DESCENDING_ORDER_TAG,           // recvtag
-                 MPI_COMM_WORLD,                 // comm
-                 MPI_STATUS_IGNORE               // status
+    MPI_Sendrecv(
+        &local_cur[LOCAL_LEFT],         // sendbuf
+        HALO,                           // sendcount
+        MPI_CHAR,                       // sendtype
+        rank_prev,                      // dest
+        DESCENDING_ORDER_TAG,           // sendtag
+        &local_cur[LOCAL_RIGHT_GHOST],  // recvbuf
+        HALO,                           // recvcount
+        MPI_CHAR,                       // recvtype
+        rank_next,                      // source
+        DESCENDING_ORDER_TAG,           // recvtag
+        MPI_COMM_WORLD,                 // comm
+        MPI_STATUS_IGNORE               // status
     );
 
     /* [TODO] in the parallel version, all processes must execute
@@ -460,14 +467,15 @@ int main(int argc, char* argv[]) {
                | LOCAL_LEFT
                LOCAL_LEFT_GHOST
     */
-    MPI_Gather(&local_next[LOCAL_LEFT],  // sendbuf
-               local_width,              // sendcount
-               MPI_CHAR,                 // sendtype
-               &cur[LEFT],               // recvbuf
-               local_width,              // recvcount
-               MPI_CHAR,                 // recvtype
-               0,                        // root
-               MPI_COMM_WORLD            // comm
+    MPI_Gather(
+        &local_next[LOCAL_LEFT],  // sendbuf
+        local_width,              // sendcount
+        MPI_CHAR,                 // sendtype
+        &cur[LEFT],               // recvbuf
+        local_width,              // recvcount
+        MPI_CHAR,                 // recvtype
+        0,                        // root
+        MPI_COMM_WORLD            // comm
     );
 
     /* swap current and next domain */

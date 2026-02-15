@@ -134,8 +134,15 @@ int mpi_generate_points_naive(int n) {
       I = generate_points((n / comm_sz) + (n % comm_sz));
       for (int rank = 0; rank < comm_sz - 1; rank++) {
         int buff;
-        MPI_Recv(&buff, 1, MPI_INT, MPI_ANY_SOURCE, VALUE_TAG, MPI_COMM_WORLD,
-                 MPI_STATUS_IGNORE);
+        MPI_Recv(
+            &buff,
+            1,
+            MPI_INT,
+            MPI_ANY_SOURCE,
+            VALUE_TAG,
+            MPI_COMM_WORLD,
+            MPI_STATUS_IGNORE
+        );
         I += buff;
       }
       break;
@@ -179,8 +186,12 @@ int main(int argc, char* argv[]) {
     inside = generate_points_functions[i](npoints);
     if (my_rank == MASTER_RANK) {
       pi_approx = 4.0 * inside / (double)npoints;
-      printf("PI approximation is %f (true value=%f, rel error=%.3f%%)\n",
-             pi_approx, M_PI, 100.0 * fabs(pi_approx - M_PI) / M_PI);
+      printf(
+          "PI approximation is %f (true value=%f, rel error=%.3f%%)\n",
+          pi_approx,
+          M_PI,
+          100.0 * fabs(pi_approx - M_PI) / M_PI
+      );
       puts("=== END ===");
     }
   }

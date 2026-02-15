@@ -118,8 +118,15 @@ void fill(int* vin, int* vout, int n) {
 int is_correct(const int* vin, const int* vout, int n) {
   for (int i = 0; i < n; i++) {
     if (vout[i] != fib_iter(vin[i])) {
-      fprintf(stderr, "Test FAILED: vin[%d]=%d, vout[%d]=%d (expected %d)\n", i,
-              vin[i], i, vout[i], fib_iter(vin[i]));
+      fprintf(
+          stderr,
+          "Test FAILED: vin[%d]=%d, vout[%d]=%d (expected %d)\n",
+          i,
+          vin[i],
+          i,
+          vout[i],
+          fib_iter(vin[i])
+      );
       return 0;
     }
   }

@@ -441,8 +441,12 @@ int main(int argc, char* argv[]) {
   write_pbm(cur, ext_width, ext_height, s);
   free(cur);
   free(next);
-  fprintf(stderr, "Execution time %.3f (%f Mops/s)\n", elapsed,
-          (width * height / 1.0e6) * nsteps / elapsed);
+  fprintf(
+      stderr,
+      "Execution time %.3f (%f Mops/s)\n",
+      elapsed,
+      (width * height / 1.0e6) * nsteps / elapsed
+  );
 
   return EXIT_SUCCESS;
 }

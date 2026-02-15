@@ -104,13 +104,14 @@ void my_Bcast(int* v) {
   MPI_Comm_size(MPI_COMM_WORLD, &comm_sz);
 
   if (my_rank != MASTER_RANK) {
-    MPI_Recv(v,                  // buf
-             1,                  // count
-             MPI_INT,            // datatype
-             (my_rank - 1) / 2,  // source
-             VALUE_TAG,          // tag
-             MPI_COMM_WORLD,     // comm
-             MPI_STATUS_IGNORE   // status
+    MPI_Recv(
+        v,                  // buf
+        1,                  // count
+        MPI_INT,            // datatype
+        (my_rank - 1) / 2,  // source
+        VALUE_TAG,          // tag
+        MPI_COMM_WORLD,     // comm
+        MPI_STATUS_IGNORE   // status
     );
   }
 

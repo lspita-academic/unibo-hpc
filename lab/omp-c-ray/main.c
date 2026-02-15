@@ -209,7 +209,8 @@ const char* usage = {
     "  -r <rays>  shoot <rays> rays per pixel (antialiasing, default 1)\n"
     "  -i <file>  read from <file> instead of stdin\n"
     "  -o <file>  write to <file> instead of stdout\n"
-    "  -h         this help screen\n\n"};
+    "  -h         this help screen\n\n"
+};
 
 /* vector dot product */
 double dot(vec3_t a, vec3_t b) { return a.x * b.x + a.y * b.y + a.z * b.z; }
@@ -536,10 +537,19 @@ void load_scene(FILE* fp) {
         sph->next = obj_list;
         obj_list = sph;
 
-        nread = sscanf(ptr, "%lf %lf %lf %lf %lf %lf %lf %lf %lf",
-                       &(sph->pos.x), &(sph->pos.y), &(sph->pos.z), &(sph->rad),
-                       &(sph->mat.col.x), &(sph->mat.col.y), &(sph->mat.col.z),
-                       &(sph->mat.spow), &(sph->mat.refl));
+        nread = sscanf(
+            ptr,
+            "%lf %lf %lf %lf %lf %lf %lf %lf %lf",
+            &(sph->pos.x),
+            &(sph->pos.y),
+            &(sph->pos.z),
+            &(sph->rad),
+            &(sph->mat.col.x),
+            &(sph->mat.col.y),
+            &(sph->mat.col.z),
+            &(sph->mat.spow),
+            &(sph->mat.refl)
+        );
         assert(9 == nread);
         break;
       case 'l': /* light */
@@ -547,15 +557,28 @@ void load_scene(FILE* fp) {
           fprintf(stderr, "FATAL: too many lights\n");
           exit(-1);
         }
-        nread = sscanf(ptr, "%lf %lf %lf", &(lights[lnum].x), &(lights[lnum].y),
-                       &(lights[lnum].z));
+        nread = sscanf(
+            ptr,
+            "%lf %lf %lf",
+            &(lights[lnum].x),
+            &(lights[lnum].y),
+            &(lights[lnum].z)
+        );
         assert(3 == nread);
         lnum++;
         break;
       case 'c': /* camera */
-        nread =
-            sscanf(ptr, "%lf %lf %lf %lf %lf %lf %lf", &cam.pos.x, &cam.pos.y,
-                   &cam.pos.z, &fov, &cam.targ.x, &cam.targ.y, &cam.targ.z);
+        nread = sscanf(
+            ptr,
+            "%lf %lf %lf %lf %lf %lf %lf",
+            &cam.pos.x,
+            &cam.pos.y,
+            &cam.pos.z,
+            &fov,
+            &cam.targ.x,
+            &cam.targ.y,
+            &cam.targ.z
+        );
         assert(7 == nread);
         cam.half_fov_rad = fov * DEG_TO_RAD * 0.5;
         break;
@@ -588,8 +611,10 @@ int main(int argc, char* argv[]) {
       case 's':
         if (!isdigit(optarg[0]) || !(sep = strchr(optarg, 'x')) ||
             !isdigit(*(sep + 1))) {
-          fprintf(stderr,
-                  "FATAL: -s must be followed by something like \"640x480\"\n");
+          fprintf(
+              stderr,
+              "FATAL: -s must be followed by something like \"640x480\"\n"
+          );
           return EXIT_FAILURE;
         }
         xres = atoi(optarg);
@@ -600,16 +625,24 @@ int main(int argc, char* argv[]) {
 
       case 'i':
         if ((infile = fopen(optarg, "r")) == NULL) {
-          fprintf(stderr, "FATAL: failed to open input file %s: %s\n", optarg,
-                  strerror(errno));
+          fprintf(
+              stderr,
+              "FATAL: failed to open input file %s: %s\n",
+              optarg,
+              strerror(errno)
+          );
           return EXIT_FAILURE;
         }
         break;
 
       case 'o':
         if ((outfile = fopen(optarg, "w")) == NULL) {
-          fprintf(stderr, "FATAL: failed to open output file %s: %s\n", optarg,
-                  strerror(errno));
+          fprintf(
+              stderr,
+              "FATAL: failed to open output file %s: %s\n",
+              optarg,
+              strerror(errno)
+          );
           return EXIT_FAILURE;
         }
         break;

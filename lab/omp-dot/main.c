@@ -151,9 +151,12 @@ int main(int argc, char* argv[]) {
   }
 
   if (n > MAX_MATRIX_SIZE) {
-    fprintf(stderr,
-            "FATAL: Array too long (requested length=%lu, maximum length=%lu\n",
-            (unsigned long)n, (unsigned long)MAX_MATRIX_SIZE);
+    fprintf(
+        stderr,
+        "FATAL: Array too long (requested length=%lu, maximum length=%lu\n",
+        (unsigned long)n,
+        (unsigned long)MAX_MATRIX_SIZE
+    );
     return EXIT_FAILURE;
   }
 
