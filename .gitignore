@@ -10,19 +10,3 @@
 /.clang-tidy
 /.clang-format
 /Makefile
-
-# compiled lib files
-/lib/**/*
-!/lib/**/*.*
-!/lib/**/Makefile
-!/lib/**/README
-!/lib/**/
-/lib/**/*.o
-/lib/**/*.out
-/lib/**/*.class
-/lib/**/*.lst
-/lib/**/*.s
-
-# out images
-*.pbm
-*.png
