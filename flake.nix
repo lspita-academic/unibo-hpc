@@ -33,6 +33,7 @@
               clang-tools # must be before clang to have the correct clangd in PATH
               clang
               lldb
+              bear # for manual compilation db creation in assignment, that is required to use a standard makefile
               # opencl
               ocl-icd
               opencl-headers
