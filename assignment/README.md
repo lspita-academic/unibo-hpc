@@ -19,7 +19,7 @@ Parameters:
 
 - `<variant>`: Variant of the program, either serial, omp, mpi or cuda
 
-A default `build` target is also provided to build all binaries, including [inputgen](#Inputgen).
+A default `build` target is also provided to build all binaries, including [inputgen](#inputgen).
 
 ## Run
 
@@ -41,7 +41,7 @@ Parameters:
 
 ### Manual
 
-All binaries are stored in the [BIN_DIR](<#Make targets parameters>) directory and follow the assignment specification for the parameters.
+All binaries are stored in the [BIN_DIR](#parameters) directory and follow the assignment specification for the parameters.
 
 ```sh
 ./bin/<variant>-k-means <K> <INPUT> <OUTPUT>
@@ -91,7 +91,7 @@ make build-inputgen
 
 ### Run
 
-The binary is stored in the [BIN_DIR](<#Make targets parameters>) alongside the others.
+The binary is stored in the [BIN_DIR](#parameters) alongside the others.
 
 ```sh
 ./bin/inputgen <POINTS> <DIMS> <CLUSTERS>
@@ -144,7 +144,7 @@ This target requires [bear](https://github.com/rizsotto/Bear) to be installed.
 > The compilation database is created in append mode to allow for faster incremental builds.
 > It is suggested to clean all build artifacts before the first build.
 
-### Make targets parameters
+### Parameters
 
 The parameters used by the targets are simple makefile variables. They can be overriden with environment variables using the same name or by providing them after the target name.
 
