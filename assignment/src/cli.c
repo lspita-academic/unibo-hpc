@@ -9,13 +9,13 @@
 
 char* check_arg(char* arg, char* arg_name) {
   safe_assert(
-      strlen(arg) == 0, "Invalid argument %s: value is empty\n", arg_name
+      strlen(arg) > 0, "Invalid argument %s: value is empty\n", arg_name
   );
   return arg;
 }
 
 CliArgs parse_cli_args(int argc, char* argv[]) {
-  safe_assert(argc != 4, "Usage: %s K input_file output_file\n", argv[0]);
+  safe_assert(argc == 4, "Usage: %s K input_file output_file\n", argv[0]);
 
   char* k_str = check_arg(argv[1], "K");
   char* input_file_path = check_arg(argv[2], "input_file");
@@ -30,10 +30,8 @@ CliArgs parse_cli_args(int argc, char* argv[]) {
   char* endptr;
   int64_t k = strtol(k_str, &endptr, 10);
   safe_assert(
-      *endptr != '\0' || k < 0,
-      "Invalid argument K: value must be a number between %l and %l\n",
-      0L,
-      INT64_MAX
+      *endptr == '\0' && k >= 0,
+      "Invalid argument K: value must be a non-negative number\n"
   );
 
   return (CliArgs){

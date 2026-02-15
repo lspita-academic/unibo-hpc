@@ -4,11 +4,12 @@
  * defining _XOPEN_SOURCE first allows hpc.h to not be the first header
  * included, so autoformatters can be used.
  */
-#include <stdio.h>
 #if _XOPEN_SOURCE < 600
 #define _XOPEN_SOURCE 600
 #endif
 
+#include <hpc.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 #include "cli.h"

@@ -35,6 +35,6 @@ void safe_assert(bool condition, char* message, ...) {
 
 void* safe_malloc(size_t size) {
   void* ptr = malloc(size);
-  safe_assert(ptr == NULL, NULL);
+  safe_assert(ptr != NULL, NULL);
   return ptr;
 }

@@ -2,6 +2,7 @@
 CC?=gcc
 MPICC?=mpicc
 NVCC?=nvcc
+BEAR?=bear
 
 CFLAGS+=-std=c99 -Wall -Wpedantic
 OMP_FLAGS+=-fopenmp
@@ -100,8 +101,14 @@ INPUTGEN_BIN=$(BIN_DIR)/inputgen
 
 BINS:=$(SERIAL_BIN) $(OMP_BIN) $(MPI_BIN) $(CUDA_BIN) $(INPUTGEN_BIN)
 
+NODEPS_TARGETS=clean clean-build clean-compiledb clean-demo
+
 # targets
-.PHONY: all build build-serial build-omp build-mpi build-cuda build-inputgen demo-input
+.PHONY: all \
+	$(NODEPS_TARGETS) \
+	build build-serial build-omp build-mpi build-cuda build-inputgen \
+	demo-input \
+	compiledb
 
 all: build
 
@@ -112,6 +119,9 @@ build-omp: $(OMP_BIN)
 build-mpi: $(MPI_BIN)
 build-cuda: $(CUDA_BIN)
 build-inputgen: $(INPUTGEN_BIN)
+
+compiledb:
+	$(BEAR) --append -- $(MAKE) build
 
 define make_run_target
 .PHONY: run-$(1)
@@ -145,11 +155,22 @@ $(eval $(call make_demo_target,cuda))
 
 demo-input: $(DEMO_INPUT)
 
-clean:
+clean-build:
 	rm -f $(OBJS)
 	rm -f $(BINS)
 	rm -f $(DEPS)
-	rm -f $(DEMO_DIR)/{clusters_*.txt,img_*.png,centroids_*.txt,demo_*.mp4}
+
+clean-compiledb:
+	rm -f compile_commands.json
+	rm -f compile_commands.events.json
+
+clean-demo:
+	rm -f $(DEMO_DIR)/clusters_*.txt
+	rm -f $(DEMO_DIR)/img_*.png
+	rm -f $(DEMO_DIR)/centroids_*.txt
+	rm -f $(DEMO_DIR)/demo_*.mp4
+
+clean: clean-build clean-bear clean-demo
 
 # add include directory to compilation flags
 CFLAGS+=-I$(INCLUDE_DIR)
@@ -183,7 +204,7 @@ $(MPI_TARGETS): EXTRA_OBJS+=$(CUDA_OBJS)
 $(BUILD_DIR)/%.d: $(SRC_DIR)/%.c | $(BUILD_DIR)/
 	$(CC) $(CFLAGS) -MM -MQ '$(call src_to_obj,$<)' -c $< -MF $@
 
-ifneq ($(MAKECMDGOALS),clean)
+ifeq ($(filter $(MAKECMDGOALS),$(NODEPS_TARGETS)),)
 -include $(DEPS)
 endif
 

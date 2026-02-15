@@ -121,6 +121,31 @@ Parameters:
 - `DIMS`: Number of dimensions of each point (required)
 - `CLUSTERS`: Number of clusters to use (required)
 
+## Compilation database
+
+A make target to create a compilation database from the build target for clangd is provided.
+
+```sh
+make compiledb
+```
+
+This target requires [bear](https://github.com/rizsotto/Bear) to be installed.
+
+> [!IMPORTANT]
+> The compilation database is created in append mode to allow for faster incremental builds.
+> It is suggested to clean all build artifacts before the first build.
+
+## Clean
+
+Artifacts cleaning is splitted into multiple targets.
+
+```sh
+make clean-build # cleans all build files and compiled binaries
+make clean-compiledb # cleans the compilation database
+make clean-demo # cleans the demo files
+make clean # cleans all artifacts
+```
+
 ## Make targets parameters
 
 The parameters used by the targets are simple makefile variables. They can be overriden with environment variables using the same name or by providing them after the target name.
@@ -150,6 +175,7 @@ Here a complete list of parameters. If anything is missing, the [Makefile](./Mak
 - `CC`: Compiler for standard c sources (default: gcc).
 - `MPICC`: Compiler for MPI sources (default: mpicc).
 - `NVCC`: Compiler for CUDA sources (default: nvcc).
+- `BEAR`: Compiler for compiledb (default: bear).
 - `CFLAGS`: Flags to use when compiling all sources. The -std flag is ignored for CUDA sources. (default: -std=c99 -Wall -Wpedantic).
 - `OMP_FLAGS`: Flags to add for OpenMP sources (default: -fopenmp).
 - `NVCC_FLAGS`: Flags to add for CUDA sources (default: -Wno-deprecated-gpu-targets).

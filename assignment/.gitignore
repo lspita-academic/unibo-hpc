@@ -6,3 +6,10 @@ demo/
 # test files
 *.out
 *.in
+
+# clangd
+compile_commands.json
+.cache
+
+# bear
+compile_commands.events.json
