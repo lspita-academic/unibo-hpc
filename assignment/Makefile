@@ -170,7 +170,7 @@ clean-demo:
 	rm -f $(DEMO_DIR)/centroids_*.txt
 	rm -f $(DEMO_DIR)/demo_*.mp4
 
-clean: clean-build clean-bear clean-demo
+clean: clean-build clean-compiledb clean-demo
 
 # add include directory to compilation flags
 CFLAGS+=-I$(INCLUDE_DIR)
