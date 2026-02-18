@@ -29,6 +29,8 @@ void safe_assert(bool condition, char* message, ...) {
     va_start(ap, message);  // message is the last fixed argument
     vfprintf(stderr, message, ap);
     va_end(ap);
+  } else {
+    fprintf(stderr, "Assertion failed");
   }
   safe_exit(EXIT_FAILURE);
 }
@@ -37,4 +39,10 @@ void* safe_malloc(size_t size) {
   void* ptr = malloc(size);
   safe_assert(ptr != NULL, NULL);
   return ptr;
+}
+
+FILE* safe_fopen(char* path, char* mode) {
+  FILE* file = fopen(path, mode);
+  safe_assert(file != NULL, "Failed to open file %s in %s mode", path, mode);
+  return file;
 }

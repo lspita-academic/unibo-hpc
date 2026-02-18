@@ -1,10 +1,10 @@
 #ifndef ARGS_H
 #define ARGS_H
 
-#include <stdint.h>
+#include <stdlib.h>
 
 typedef struct {
-  uint64_t k;
+  size_t k;
   char* input_file_path;
   char* output_file_path;
 } CliArgs;
