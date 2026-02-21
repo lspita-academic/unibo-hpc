@@ -1,0 +1,21 @@
+#ifndef IO_H
+#define IO_H
+
+#include <stddef.h>
+#include <stdio.h>
+
+#define POINT_COORD_READ_FORMAT "%lf"
+#define POINT_COORD_PRINT_FORMAT "%lf"
+
+typedef double point_coord;
+
+typedef struct PointsCollection {
+    size_t size;
+    size_t dimensions;
+    point_coord* data;
+} PointsCollection;
+
+PointsCollection read_points_collection(FILE* stream);
+void points_collection_free(PointsCollection* points);
+
+#endif  // IO_H

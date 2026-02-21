@@ -1,4 +1,4 @@
-#include "io.h"
+#include "points.h"
 
 #include <stddef.h>
 #include <stdio.h>
@@ -7,7 +7,7 @@
 
 #include "safety.h"
 
-#define INPUT_FILE_ROW_BUFLEN 1024
+#define STREAM_ROW_BUFLEN 1024
 
 void update_dimensions(
     size_t current_dims, size_t* out_points, size_t* out_dims
@@ -29,26 +29,26 @@ void update_dimensions(
     *out_dims = dims;
 }
 
-void read_input_file_dimensions(
-    FILE* input_file, size_t* out_points, size_t* out_dims
+void read_points_collection_dimensions(
+    FILE* stream, size_t* out_points, size_t* out_dims
 ) {
-    char row_buffer[INPUT_FILE_ROW_BUFLEN];
+    char row_buffer[STREAM_ROW_BUFLEN];
     size_t points = 0;
     size_t dims = 0;
 
     size_t current_dims = 0;
-    while (fgets(row_buffer, INPUT_FILE_ROW_BUFLEN, input_file) != NULL) {
+    while (fgets(row_buffer, STREAM_ROW_BUFLEN, stream) != NULL) {
         size_t n_read_chars = strlen(row_buffer);
         if (n_read_chars == 0) {
             continue;
         }
 
-        input_item_t item;
+        point_coord item;
         size_t item_offset = 0;
         int item_chars = 0;
         while (sscanf(
                    row_buffer + item_offset,
-                   INPUT_ITEM_READ_FORMAT "%n",
+                   POINT_COORD_READ_FORMAT "%n",
                    &item,
                    &item_chars
                ) > 0) {
@@ -82,27 +82,29 @@ void read_input_file_dimensions(
     *out_dims = dims;
 }
 
-input_item_t* read_input_file_items(
-    FILE* input_file, size_t points, size_t dims
+point_coord* read_points_collection_items(
+    FILE* stream, size_t points, size_t dims
 ) {
-    input_item_t* items = safe_malloc(sizeof(*items) * points * dims);
+    point_coord* items = safe_malloc(sizeof(*items) * points * dims);
 
     for (size_t i = 0; i < points * dims; i++) {
-        int nread = fscanf(input_file, INPUT_ITEM_READ_FORMAT, &items[i]);
+        int nread = fscanf(stream, POINT_COORD_READ_FORMAT, &items[i]);
         safe_assert(nread == 1, "Failed to read input file item\n");
     }
     return items;
 }
 
-InputData read_input_file(FILE* input_file) {
+PointsCollection read_points_collection(FILE* input_file) {
     size_t points = 0;
     size_t dims = 0;
 
-    read_input_file_dimensions(input_file, &points, &dims);
+    read_points_collection_dimensions(input_file, &points, &dims);
     rewind(input_file);
-    input_item_t* items = read_input_file_items(input_file, points, dims);
+    point_coord* items = read_points_collection_items(input_file, points, dims);
 
-    return (InputData){.points = points, .dims = dims, .items = items};
+    return (PointsCollection){
+        .size = points, .dimensions = dims, .data = items
+    };
 }
 
-void input_data_free(InputData* data) { free(data->items); }
+void points_collection_free(PointsCollection* points) { free(points->data); }
