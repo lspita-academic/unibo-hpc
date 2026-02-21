@@ -185,11 +185,11 @@ The output is stored to the file `cuda-rule30.pbm`
 typedef unsigned char cell_t;
 
 __device__ __host__ cell_t calculate_cell(cell_t* const cur, const int i) {
-  const cell_t left = cur[i - 1];
-  const cell_t center = cur[i];
-  const cell_t right = cur[i + 1];
-  return (left && !center && !right) || (!left && !center && right) ||
-         (!left && center && !right) || (!left && center && right);
+    const cell_t left = cur[i - 1];
+    const cell_t center = cur[i];
+    const cell_t right = cur[i + 1];
+    return (left && !center && !right) || (!left && !center && right) ||
+           (!left && center && !right) || (!left && center && right);
 }
 
 /**
@@ -207,49 +207,49 @@ __device__ __host__ cell_t calculate_cell(cell_t* const cur, const int i) {
  *
  */
 void step(cell_t* cur, cell_t* next, int ext_n) {
-  const int LEFT = 1;
-  const int RIGHT = ext_n - 2;
-  for (int i = LEFT; i <= RIGHT; i++) {
-    next[i] = calculate_cell(cur, i);
-  }
+    const int LEFT = 1;
+    const int RIGHT = ext_n - 2;
+    for (int i = LEFT; i <= RIGHT; i++) {
+        next[i] = calculate_cell(cur, i);
+    }
 }
 
 __global__ void step_kernel(
     cell_t* const cur, cell_t* const next, const int left, const int right
 ) {
-  const int thread_idx = threadIdx.x;
-  const int global_idx = (blockIdx.x * blockDim.x) + thread_idx;
-  if (global_idx < left || global_idx > right) {
-    return;
-  }
-  __shared__ cell_t buffer[BLKDIM + (2 * RADIUS)];
-  const int buffer_idx = thread_idx + RADIUS;
-  buffer[buffer_idx] = cur[global_idx];
-  if (thread_idx < RADIUS) {
-    // first RADIUS threads also copy the ghost area
-    const int block_size = blockDim.x;
-    buffer[buffer_idx - RADIUS] = cur[global_idx - RADIUS];
-    buffer[buffer_idx + block_size] = cur[global_idx + block_size];
-  }
-  __syncthreads();
-  next[global_idx] = calculate_cell(buffer, buffer_idx);
+    const int thread_idx = threadIdx.x;
+    const int global_idx = (blockIdx.x * blockDim.x) + thread_idx;
+    if (global_idx < left || global_idx > right) {
+        return;
+    }
+    __shared__ cell_t buffer[BLKDIM + (2 * RADIUS)];
+    const int buffer_idx = thread_idx + RADIUS;
+    buffer[buffer_idx] = cur[global_idx];
+    if (thread_idx < RADIUS) {
+        // first RADIUS threads also copy the ghost area
+        const int block_size = blockDim.x;
+        buffer[buffer_idx - RADIUS] = cur[global_idx - RADIUS];
+        buffer[buffer_idx + block_size] = cur[global_idx + block_size];
+    }
+    __syncthreads();
+    next[global_idx] = calculate_cell(buffer, buffer_idx);
 }
 
 void cuda_step(cell_t* cur, cell_t* next, int ext_n) {
-  const int LEFT = 1;
-  const int RIGHT = ext_n - 2;
-  cell_t* d_cur;
-  cell_t* d_next;
-  const int size = ext_n * sizeof(*d_cur);
-  cudaSafeCall(cudaMalloc(&d_cur, size));
-  cudaSafeCall(cudaMalloc(&d_next, size));
-  cudaSafeCall(cudaMemcpy(d_cur, cur, size, cudaMemcpyHostToDevice));
-  step_kernel<<<(ext_n + BLKDIM - 1) / BLKDIM, BLKDIM>>>(
-      d_cur, d_next, LEFT, RIGHT
-  );
-  cudaSafeCall(cudaMemcpy(next, d_next, size, cudaMemcpyDeviceToHost));
-  cudaSafeCall(cudaFree(d_cur));
-  cudaSafeCall(cudaFree(d_next));
+    const int LEFT = 1;
+    const int RIGHT = ext_n - 2;
+    cell_t* d_cur;
+    cell_t* d_next;
+    const int size = ext_n * sizeof(*d_cur);
+    cudaSafeCall(cudaMalloc(&d_cur, size));
+    cudaSafeCall(cudaMalloc(&d_next, size));
+    cudaSafeCall(cudaMemcpy(d_cur, cur, size, cudaMemcpyHostToDevice));
+    step_kernel<<<(ext_n + BLKDIM - 1) / BLKDIM, BLKDIM>>>(
+        d_cur, d_next, LEFT, RIGHT
+    );
+    cudaSafeCall(cudaMemcpy(next, d_next, size, cudaMemcpyDeviceToHost));
+    cudaSafeCall(cudaFree(d_cur));
+    cudaSafeCall(cudaFree(d_next));
 }
 
 /**
@@ -258,10 +258,10 @@ void cuda_step(cell_t* cur, cell_t* next, int ext_n) {
  * of length `ext_n`; the length includes two ghost cells.
  */
 void init_domain(cell_t* cur, int ext_n) {
-  for (int i = 0; i < ext_n; i++) {
-    cur[i] = 0;
-  }
-  cur[ext_n / 2] = 1;
+    for (int i = 0; i < ext_n; i++) {
+        cur[i] = 0;
+    }
+    cur[ext_n / 2] = 1;
 }
 
 /**
@@ -269,83 +269,83 @@ void init_domain(cell_t* cur, int ext_n) {
  * an array of length `ext_n` that includes two ghost cells.
  */
 void dump_state(FILE* out, const cell_t* cur, int ext_n) {
-  const int LEFT = 1;
-  const int RIGHT = ext_n - 2;
-  for (int i = LEFT; i <= RIGHT; i++) {
-    fprintf(out, "%d ", cur[i]);
-  }
-  fprintf(out, "\n");
+    const int LEFT = 1;
+    const int RIGHT = ext_n - 2;
+    for (int i = LEFT; i <= RIGHT; i++) {
+        fprintf(out, "%d ", cur[i]);
+    }
+    fprintf(out, "\n");
 }
 
 int main(int argc, char* argv[]) {
-  const char* outname = "cuda-rule30.pbm";
-  FILE* out;
-  int width = 1024, steps = 1024;
-  cell_t *cur, *next;
+    const char* outname = "cuda-rule30.pbm";
+    FILE* out;
+    int width = 1024, steps = 1024;
+    cell_t *cur, *next;
 
-  if (argc > 3) {
-    fprintf(stderr, "Usage: %s [width [steps]]\n", argv[0]);
-    return EXIT_FAILURE;
-  }
+    if (argc > 3) {
+        fprintf(stderr, "Usage: %s [width [steps]]\n", argv[0]);
+        return EXIT_FAILURE;
+    }
 
-  if (argc > 1) {
-    width = atoi(argv[1]);
-  }
+    if (argc > 1) {
+        width = atoi(argv[1]);
+    }
 
-  if (argc > 2) {
-    steps = atoi(argv[2]);
-  }
+    if (argc > 2) {
+        steps = atoi(argv[2]);
+    }
 
-  const int ext_width = width + 2;
-  const size_t ext_size = ext_width * sizeof(*cur); /* includes ghost cells */
-  const int LEFT_GHOST = 0;
-  const int LEFT = 1;
-  const int RIGHT_GHOST = ext_width - 1;
-  const int RIGHT = RIGHT_GHOST - 1;
-  /* Create the output file */
-  out = fopen(outname, "w");
-  if (!out) {
-    fprintf(stderr, "FATAL: cannot create file \"%s\"\n", outname);
-    return EXIT_FAILURE;
-  }
-  fprintf(out, "P1\n");
-  fprintf(out, "# produced by cuda-rule30.cu\n");
-  fprintf(out, "%d %d\n", width, steps);
+    const int ext_width = width + 2;
+    const size_t ext_size = ext_width * sizeof(*cur); /* includes ghost cells */
+    const int LEFT_GHOST = 0;
+    const int LEFT = 1;
+    const int RIGHT_GHOST = ext_width - 1;
+    const int RIGHT = RIGHT_GHOST - 1;
+    /* Create the output file */
+    out = fopen(outname, "w");
+    if (!out) {
+        fprintf(stderr, "FATAL: cannot create file \"%s\"\n", outname);
+        return EXIT_FAILURE;
+    }
+    fprintf(out, "P1\n");
+    fprintf(out, "# produced by cuda-rule30.cu\n");
+    fprintf(out, "%d %d\n", width, steps);
 
-  /* Allocate space for the `cur[]` and `next[]` arrays */
-  cur = (cell_t*)malloc(ext_size);
-  assert(cur != NULL);
-  next = (cell_t*)malloc(ext_size);
-  assert(next != NULL);
+    /* Allocate space for the `cur[]` and `next[]` arrays */
+    cur = (cell_t*)malloc(ext_size);
+    assert(cur != NULL);
+    next = (cell_t*)malloc(ext_size);
+    assert(next != NULL);
 
-  /* Initialize the domain */
-  init_domain(cur, ext_width);
+    /* Initialize the domain */
+    init_domain(cur, ext_width);
 
-  double tstart = hpc_gettime();
-  /* Evolve the CA */
-  for (int s = 0; s < steps; s++) {
-    /* Dump the current state */
-    dump_state(out, cur, ext_width);
+    double tstart = hpc_gettime();
+    /* Evolve the CA */
+    for (int s = 0; s < steps; s++) {
+        /* Dump the current state */
+        dump_state(out, cur, ext_width);
 
-    /* Fill ghost cells */
-    cur[RIGHT_GHOST] = cur[LEFT];
-    cur[LEFT_GHOST] = cur[RIGHT];
+        /* Fill ghost cells */
+        cur[RIGHT_GHOST] = cur[LEFT];
+        cur[LEFT_GHOST] = cur[RIGHT];
 
-    /* Compute next state */
-    cuda_step(cur, next, ext_width);
+        /* Compute next state */
+        cuda_step(cur, next, ext_width);
 
-    /* swap cur and next */
-    cell_t* tmp = cur;
-    cur = next;
-    next = tmp;
-  }
-  double elapsed = hpc_gettime() - tstart;
-  printf("Computed %dx%d in %f seconds\n", width, steps, elapsed);
+        /* swap cur and next */
+        cell_t* tmp = cur;
+        cur = next;
+        next = tmp;
+    }
+    double elapsed = hpc_gettime() - tstart;
+    printf("Computed %dx%d in %f seconds\n", width, steps, elapsed);
 
-  free(cur);
-  free(next);
+    free(cur);
+    free(next);
 
-  fclose(out);
+    fclose(out);
 
-  return EXIT_SUCCESS;
+    return EXIT_SUCCESS;
 }

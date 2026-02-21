@@ -138,121 +138,121 @@ OpenMP threads and $N=20000$ points:
 typedef int (*generate_points_function_t)(int);
 
 unsigned int random_seed(const int id) {
-  // deterministic number sequences
-  return 17 + (19 * id);
+    // deterministic number sequences
+    return 17 + (19 * id);
 }
 
 int generate_points_serial(int n) {
-  puts("generate points: serial");
-  unsigned int n_inside = 0;
-  /* The C function `rand()` is not thread-safe, since it modifies a
-     global seed; therefore, it can not be used inside a parallel
-     region. We use `rand_r()` with an explicit per-thread
-     seed. However, this means that in general the result computed
-     by this program depends on the number of threads. */
-  unsigned int my_seed = random_seed(omp_get_thread_num());
-  for (int i = 0; i < n; i++) {
-    /* Generate two random values in the range [-1, 1] */
-    const double x = (2.0 * rand_r(&my_seed) / (double)RAND_MAX) - 1.0;
-    const double y = (2.0 * rand_r(&my_seed) / (double)RAND_MAX) - 1.0;
-    if ((x * x) + (y * y) <= 1.0) {
-      n_inside++;
+    puts("generate points: serial");
+    unsigned int n_inside = 0;
+    /* The C function `rand()` is not thread-safe, since it modifies a
+       global seed; therefore, it can not be used inside a parallel
+       region. We use `rand_r()` with an explicit per-thread
+       seed. However, this means that in general the result computed
+       by this program depends on the number of threads. */
+    unsigned int my_seed = random_seed(omp_get_thread_num());
+    for (int i = 0; i < n; i++) {
+        /* Generate two random values in the range [-1, 1] */
+        const double x = (2.0 * rand_r(&my_seed) / (double)RAND_MAX) - 1.0;
+        const double y = (2.0 * rand_r(&my_seed) / (double)RAND_MAX) - 1.0;
+        if ((x * x) + (y * y) <= 1.0) {
+            n_inside++;
+        }
     }
-  }
-  return n_inside;
+    return n_inside;
 }
 
 int omp_generate_points_parallel(int n) {
-  puts("generate points: omp parallel");
-  const int P = omp_get_max_threads();
-  unsigned int* const inside = (unsigned int*)calloc(P, sizeof(unsigned int));
+    puts("generate points: omp parallel");
+    const int P = omp_get_max_threads();
+    unsigned int* const inside = (unsigned int*)calloc(P, sizeof(unsigned int));
 
 #pragma omp parallel
-  {
-    const int thread_id = omp_get_thread_num();
-    const int num_threads =
-        omp_get_num_threads();  // get real number of threads
-    const size_t start = (n * thread_id) / num_threads;
-    const size_t end = (n * (thread_id + 1)) / num_threads;
+    {
+        const int thread_id = omp_get_thread_num();
+        const int num_threads =
+            omp_get_num_threads();  // get real number of threads
+        const size_t start = (n * thread_id) / num_threads;
+        const size_t end = (n * (thread_id + 1)) / num_threads;
 
-    unsigned int n_inside = 0;
-    unsigned int my_seed = random_seed(thread_id);
-    for (size_t i = start; i < end; i++) {
-      /* Generate two random values in the range [-1, 1] */
-      const double x = (2.0 * rand_r(&my_seed) / (double)RAND_MAX) - 1.0;
-      const double y = (2.0 * rand_r(&my_seed) / (double)RAND_MAX) - 1.0;
-      if ((x * x) + (y * y) <= 1.0) {
-        n_inside++;
-      }
+        unsigned int n_inside = 0;
+        unsigned int my_seed = random_seed(thread_id);
+        for (size_t i = start; i < end; i++) {
+            /* Generate two random values in the range [-1, 1] */
+            const double x = (2.0 * rand_r(&my_seed) / (double)RAND_MAX) - 1.0;
+            const double y = (2.0 * rand_r(&my_seed) / (double)RAND_MAX) - 1.0;
+            if ((x * x) + (y * y) <= 1.0) {
+                n_inside++;
+            }
+        }
+        inside[thread_id] = n_inside;
     }
-    inside[thread_id] = n_inside;
-  }
-  unsigned int sum = 0;
-  for (int i = 0; i < P; i++) {
-    sum += inside[i];
-  }
-  free(inside);
-  return sum;
+    unsigned int sum = 0;
+    for (int i = 0; i < P; i++) {
+        sum += inside[i];
+    }
+    free(inside);
+    return sum;
 }
 
 int omp_generate_points_reduction(int n) {
-  puts("generate points: omp reduction");
-  unsigned int n_inside = 0;
+    puts("generate points: omp reduction");
+    unsigned int n_inside = 0;
 #pragma omp parallel
-  {
-    const int thread_id = omp_get_thread_num();
-    unsigned int my_seed = random_seed(thread_id);
+    {
+        const int thread_id = omp_get_thread_num();
+        unsigned int my_seed = random_seed(thread_id);
 #pragma omp for reduction(+ : n_inside)
-    for (int i = 0; i < n; i++) {
-      /* Generate two random values in the range [-1, 1] */
-      const double x = (2.0 * rand_r(&my_seed) / (double)RAND_MAX) - 1.0;
-      const double y = (2.0 * rand_r(&my_seed) / (double)RAND_MAX) - 1.0;
-      if ((x * x) + (y * y) <= 1.0) {
-        n_inside++;
-      }
+        for (int i = 0; i < n; i++) {
+            /* Generate two random values in the range [-1, 1] */
+            const double x = (2.0 * rand_r(&my_seed) / (double)RAND_MAX) - 1.0;
+            const double y = (2.0 * rand_r(&my_seed) / (double)RAND_MAX) - 1.0;
+            if ((x * x) + (y * y) <= 1.0) {
+                n_inside++;
+            }
+        }
     }
-  }
-  return n_inside;
+    return n_inside;
 }
 
 int main(int argc, char* argv[]) {
-  unsigned int n_points = DEFAULT_N_POINTS;
-  unsigned int n_inside;
-  const double PI_EXACT = 3.14159265358979323846;
+    unsigned int n_points = DEFAULT_N_POINTS;
+    unsigned int n_inside;
+    const double PI_EXACT = 3.14159265358979323846;
 
-  if (argc > 2) {
-    fprintf(stderr, "Usage: %s [n_points]\n", argv[0]);
-    return EXIT_FAILURE;
-  }
+    if (argc > 2) {
+        fprintf(stderr, "Usage: %s [n_points]\n", argv[0]);
+        return EXIT_FAILURE;
+    }
 
-  if (argc > 1) {
-    n_points = atol(argv[1]);
-  }
+    if (argc > 1) {
+        n_points = atol(argv[1]);
+    }
 
-  generate_points_function_t generate_points_functions[] = {
-      generate_points_serial,
-      omp_generate_points_parallel,
-      omp_generate_points_reduction,
-  };
-  const size_t generate_points_n =
-      sizeof(generate_points_functions) / sizeof(generate_points_function_t);
+    generate_points_function_t generate_points_functions[] = {
+        generate_points_serial,
+        omp_generate_points_parallel,
+        omp_generate_points_reduction,
+    };
+    const size_t generate_points_n =
+        sizeof(generate_points_functions) / sizeof(generate_points_function_t);
 
-  for (size_t i = 0; i < generate_points_n; i++) {
-    puts("=== START ===");
-    printf("Generating %u points...\n", n_points);
-    const double tstart = omp_get_wtime();
-    n_inside = generate_points_functions[i](n_points);
-    const double elapsed = omp_get_wtime() - tstart;
-    const double pi_approx = 4.0 * n_inside / (double)n_points;
-    printf(
-        "PI approximation %f, exact %f, error %f%%\n",
-        pi_approx,
-        PI_EXACT,
-        100.0 * fabs(pi_approx - PI_EXACT) / PI_EXACT
-    );
-    printf("Execution time %.3f\n", elapsed);
-    puts("=== END ===");
-  }
+    for (size_t i = 0; i < generate_points_n; i++) {
+        puts("=== START ===");
+        printf("Generating %u points...\n", n_points);
+        const double tstart = omp_get_wtime();
+        n_inside = generate_points_functions[i](n_points);
+        const double elapsed = omp_get_wtime() - tstart;
+        const double pi_approx = 4.0 * n_inside / (double)n_points;
+        printf(
+            "PI approximation %f, exact %f, error %f%%\n",
+            pi_approx,
+            PI_EXACT,
+            100.0 * fabs(pi_approx - PI_EXACT) / PI_EXACT
+        );
+        printf("Execution time %.3f\n", elapsed);
+        puts("=== END ===");
+    }
 
-  return EXIT_SUCCESS;
+    return EXIT_SUCCESS;
 }

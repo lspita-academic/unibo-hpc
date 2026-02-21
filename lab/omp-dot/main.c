@@ -93,102 +93,103 @@ For example, if you want to use two OpenMP threads:
 typedef int (*dot_function_t)(const int*, const int*, size_t);
 
 void fill(int* v1, int* v2, size_t n) {
-  const int seq1[3] = {3, 7, 18};
-  const int seq2[3] = {12, 0, -2};
-  for (size_t i = 0; i < n; i++) {
-    v1[i] = seq1[i % 3];
-    v2[i] = seq2[i % 3];
-  }
+    const int seq1[3] = {3, 7, 18};
+    const int seq2[3] = {12, 0, -2};
+    for (size_t i = 0; i < n; i++) {
+        v1[i] = seq1[i % 3];
+        v2[i] = seq2[i % 3];
+    }
 }
 
 int dot(const int* v1, const int* v2, size_t n) {
-  puts("dot product: serial");
-  int result = 0;
-  for (size_t i = 0; i < n; i++) {
-    result += v1[i] * v2[i];
-  }
-  return result;
+    puts("dot product: serial");
+    int result = 0;
+    for (size_t i = 0; i < n; i++) {
+        result += v1[i] * v2[i];
+    }
+    return result;
 }
 
 int dot_parallel(const int* v1, const int* v2, const size_t n) {
-  puts("dot product: parallel standard");
-  int result = 0;
+    puts("dot product: parallel standard");
+    int result = 0;
 #pragma omp parallel default(none) shared(n, v1, v2) reduction(+ : result)
-  {
-    const int id = omp_get_thread_num();
-    const int num_threads = omp_get_num_threads();
-    const size_t start = (n * id) / num_threads;
-    const size_t end = (n * (id + 1)) / num_threads;
-    for (size_t i = start; i < end; i++) {
-      result += v1[i] * v2[i];
+    {
+        const int id = omp_get_thread_num();
+        const int num_threads = omp_get_num_threads();
+        const size_t start = (n * id) / num_threads;
+        const size_t end = (n * (id + 1)) / num_threads;
+        for (size_t i = start; i < end; i++) {
+            result += v1[i] * v2[i];
+        }
     }
-  }
-  return result;
+    return result;
 }
 
 int dot_parallel_for(const int* v1, const int* v2, const size_t n) {
-  puts("dot product: parallel for");
-  int result = 0;
+    puts("dot product: parallel for");
+    int result = 0;
 #pragma omp parallel for default(none) shared(n, v1, v2) reduction(+ : result)
-  for (size_t i = 0; i < n; i++) {
-    result += v1[i] * v2[i];
-  }
-  return result;
+    for (size_t i = 0; i < n; i++) {
+        result += v1[i] * v2[i];
+    }
+    return result;
 }
 
 int main(int argc, char* argv[]) {
-  int* v1;
-  int* v2;
+    int* v1;
+    int* v2;
 
-  if (argc > 2) {
-    fprintf(stderr, "Usage: %s [n]\n", argv[0]);
-    return EXIT_FAILURE;
-  }
-
-  size_t n = DEFAULT_MATRIX_SIZE; /* array length */
-  if (argc > 1) {
-    n = atol(argv[1]);
-  }
-
-  if (n > MAX_MATRIX_SIZE) {
-    fprintf(
-        stderr,
-        "FATAL: Array too long (requested length=%lu, maximum length=%lu\n",
-        (unsigned long)n,
-        (unsigned long)MAX_MATRIX_SIZE
-    );
-    return EXIT_FAILURE;
-  }
-
-  const int expect = (n % 3 == 0 ? 0 : 36);
-  dot_function_t dot_functions[] = {
-      dot,
-      dot_parallel,
-      dot_parallel_for,
-  };
-  const size_t dot_functions_n = sizeof(dot_functions) / sizeof(dot_function_t);
-
-  for (size_t i = 0; i < dot_functions_n; i++) {
-    puts("=== START ===");
-    printf("Initializing array of length %lu\n", (unsigned long)n);
-    v1 = (int*)malloc(n * sizeof(v1[0]));
-    assert(v1 != NULL);
-    v2 = (int*)malloc(n * sizeof(v2[0]));
-    assert(v2 != NULL);
-    fill(v1, v2, n);
-    const double tstart = omp_get_wtime();
-    const int result = dot_functions[i](v1, v2, n);
-    const double elapsed = omp_get_wtime() - tstart;
-    if (result == expect) {
-      printf("Test OK\n");
-    } else {
-      printf("Test FAILED: expected %d, got %d\n", expect, result);
+    if (argc > 2) {
+        fprintf(stderr, "Usage: %s [n]\n", argv[0]);
+        return EXIT_FAILURE;
     }
-    printf("Execution time %.3f\n", elapsed);
-    free(v1);
-    free(v2);
-    puts("=== END ===");
-  }
 
-  return EXIT_SUCCESS;
+    size_t n = DEFAULT_MATRIX_SIZE; /* array length */
+    if (argc > 1) {
+        n = atol(argv[1]);
+    }
+
+    if (n > MAX_MATRIX_SIZE) {
+        fprintf(
+            stderr,
+            "FATAL: Array too long (requested length=%lu, maximum length=%lu\n",
+            (unsigned long)n,
+            (unsigned long)MAX_MATRIX_SIZE
+        );
+        return EXIT_FAILURE;
+    }
+
+    const int expect = (n % 3 == 0 ? 0 : 36);
+    dot_function_t dot_functions[] = {
+        dot,
+        dot_parallel,
+        dot_parallel_for,
+    };
+    const size_t dot_functions_n =
+        sizeof(dot_functions) / sizeof(dot_function_t);
+
+    for (size_t i = 0; i < dot_functions_n; i++) {
+        puts("=== START ===");
+        printf("Initializing array of length %lu\n", (unsigned long)n);
+        v1 = (int*)malloc(n * sizeof(v1[0]));
+        assert(v1 != NULL);
+        v2 = (int*)malloc(n * sizeof(v2[0]));
+        assert(v2 != NULL);
+        fill(v1, v2, n);
+        const double tstart = omp_get_wtime();
+        const int result = dot_functions[i](v1, v2, n);
+        const double elapsed = omp_get_wtime() - tstart;
+        if (result == expect) {
+            printf("Test OK\n");
+        } else {
+            printf("Test FAILED: expected %d, got %d\n", expect, result);
+        }
+        printf("Execution time %.3f\n", elapsed);
+        free(v1);
+        free(v2);
+        puts("=== END ===");
+    }
+
+    return EXIT_SUCCESS;
 }

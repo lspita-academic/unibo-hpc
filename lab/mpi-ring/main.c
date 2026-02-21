@@ -81,54 +81,54 @@ Example:
 #define ROUNDS_TAG 1
 
 int main(int argc, char* argv[]) {
-  int my_rank, comm_sz, K = 10, value = 0;
+    int my_rank, comm_sz, K = 10, value = 0;
 
-  MPI_Init(&argc, &argv);
-  MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
-  MPI_Comm_size(MPI_COMM_WORLD, &comm_sz);
+    MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &comm_sz);
 
-  if (argc > 1) {
-    K = atoi(argv[1]);
-  }
-  /* [TODO] Rest of the code here... */
-
-  int dest = (my_rank + 1) % comm_sz;
-  int source = (my_rank - 1 + comm_sz) % comm_sz;
-  for (int i = 0; i < K; i++) {
-    switch (my_rank) {
-      case MASTER_RANK:
-        value++;
-        MPI_Send(&value, 1, MPI_INT, dest, VALUE_TAG, MPI_COMM_WORLD);
-        MPI_Recv(
-            &value,
-            1,
-            MPI_INT,
-            source,
-            VALUE_TAG,
-            MPI_COMM_WORLD,
-            MPI_STATUS_IGNORE
-        );
-        break;
-      default:
-        MPI_Recv(
-            &value,
-            1,
-            MPI_INT,
-            source,
-            VALUE_TAG,
-            MPI_COMM_WORLD,
-            MPI_STATUS_IGNORE
-        );
-        value++;
-        MPI_Send(&value, 1, MPI_INT, dest, VALUE_TAG, MPI_COMM_WORLD);
-        break;
+    if (argc > 1) {
+        K = atoi(argv[1]);
     }
-  }
+    /* [TODO] Rest of the code here... */
 
-  if (my_rank == 0) {
-    printf("Final value: %d\n", value);
-  }
+    int dest = (my_rank + 1) % comm_sz;
+    int source = (my_rank - 1 + comm_sz) % comm_sz;
+    for (int i = 0; i < K; i++) {
+        switch (my_rank) {
+            case MASTER_RANK:
+                value++;
+                MPI_Send(&value, 1, MPI_INT, dest, VALUE_TAG, MPI_COMM_WORLD);
+                MPI_Recv(
+                    &value,
+                    1,
+                    MPI_INT,
+                    source,
+                    VALUE_TAG,
+                    MPI_COMM_WORLD,
+                    MPI_STATUS_IGNORE
+                );
+                break;
+            default:
+                MPI_Recv(
+                    &value,
+                    1,
+                    MPI_INT,
+                    source,
+                    VALUE_TAG,
+                    MPI_COMM_WORLD,
+                    MPI_STATUS_IGNORE
+                );
+                value++;
+                MPI_Send(&value, 1, MPI_INT, dest, VALUE_TAG, MPI_COMM_WORLD);
+                break;
+        }
+    }
 
-  MPI_Finalize();
-  return EXIT_SUCCESS;
+    if (my_rank == 0) {
+        printf("Final value: %d\n", value);
+    }
+
+    MPI_Finalize();
+    return EXIT_SUCCESS;
 }

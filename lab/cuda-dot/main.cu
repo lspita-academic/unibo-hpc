@@ -89,29 +89,29 @@ Example:
 #include <stdlib.h>
 
 float dot(const float* x, const float* y, int n) {
-  /* [TODO] modify this function so that (part of) the computation
-     is executed on the GPU. You may want to follow the steps
-     below. */
+    /* [TODO] modify this function so that (part of) the computation
+       is executed on the GPU. You may want to follow the steps
+       below. */
 
-  /* Define a `float` variabile `result` in host memory */
+    /* Define a `float` variabile `result` in host memory */
 
-  /* Allocate space for device copies of `x`, `y` and `result` */
+    /* Allocate space for device copies of `x`, `y` and `result` */
 
-  /* Copy `x`, `y` from host to device */
+    /* Copy `x`, `y` from host to device */
 
-  /* Launch a suitable kernel on the GPU */
+    /* Launch a suitable kernel on the GPU */
 
-  /* Copy the value of `result` back to host memory */
+    /* Copy the value of `result` back to host memory */
 
-  /* Perform the final reduction on the CPU */
+    /* Perform the final reduction on the CPU */
 
-  /* Free device memory */
+    /* Free device memory */
 
-  float result = 0.0;
-  for (int i = 0; i < n; i++) {
-    result += x[i] * y[i];
-  }
-  return result;
+    float result = 0.0;
+    for (int i = 0; i < n; i++) {
+        result += x[i] * y[i];
+    }
+    return result;
 }
 
 /**
@@ -122,62 +122,62 @@ float dot(const float* x, const float* y, int n) {
  * unless the vectors are very long).
  */
 float vec_init(float* x, float* y, int n) {
-  const float tx[] = {1, 2, -5};
-  const float ty[] = {1, 2, 1};
+    const float tx[] = {1, 2, -5};
+    const float ty[] = {1, 2, 1};
 
-  const size_t LEN = sizeof(tx) / sizeof(tx[0]);
-  const float expected[] = {0, 1, 5};
+    const size_t LEN = sizeof(tx) / sizeof(tx[0]);
+    const float expected[] = {0, 1, 5};
 
-  for (int i = 0; i < n; i++) {
-    x[i] = tx[i % LEN];
-    y[i] = ty[i % LEN];
-  }
+    for (int i = 0; i < n; i++) {
+        x[i] = tx[i % LEN];
+        y[i] = ty[i % LEN];
+    }
 
-  return expected[n % LEN];
+    return expected[n % LEN];
 }
 
 int main(int argc, char* argv[]) {
-  float *x, *y, result;
-  int n = 1024 * 1024;
-  const int MAX_N = 128 * n;
+    float *x, *y, result;
+    int n = 1024 * 1024;
+    const int MAX_N = 128 * n;
 
-  if (argc > 2) {
-    fprintf(stderr, "Usage: %s [len]\n", argv[0]);
-    return EXIT_FAILURE;
-  }
+    if (argc > 2) {
+        fprintf(stderr, "Usage: %s [len]\n", argv[0]);
+        return EXIT_FAILURE;
+    }
 
-  if (argc > 1) {
-    n = atoi(argv[1]);
-  }
+    if (argc > 1) {
+        n = atoi(argv[1]);
+    }
 
-  if ((n < 0) || (n > MAX_N)) {
-    fprintf(stderr, "FATAL: the maximum length is %d\n", MAX_N);
-    return EXIT_FAILURE;
-  }
+    if ((n < 0) || (n > MAX_N)) {
+        fprintf(stderr, "FATAL: the maximum length is %d\n", MAX_N);
+        return EXIT_FAILURE;
+    }
 
-  const size_t SIZE = n * sizeof(*x);
+    const size_t SIZE = n * sizeof(*x);
 
-  /* Allocate space for host copies of x, y */
-  x = (float*)malloc(SIZE);
-  assert(x != NULL);
-  y = (float*)malloc(SIZE);
-  assert(y != NULL);
-  const float expected = vec_init(x, y, n);
+    /* Allocate space for host copies of x, y */
+    x = (float*)malloc(SIZE);
+    assert(x != NULL);
+    y = (float*)malloc(SIZE);
+    assert(y != NULL);
+    const float expected = vec_init(x, y, n);
 
-  printf("Computing the dot product of %d elements...\n", n);
-  result = dot(x, y, n);
+    printf("Computing the dot product of %d elements...\n", n);
+    result = dot(x, y, n);
 
-  /* Check result */
-  if (fabs(result - expected) < 1e-5) {
-    printf("Check OK\n");
-  } else {
-    printf("got=%f, expected=%f\n", result, expected);
-    printf("Check FAILED\n");
-  }
+    /* Check result */
+    if (fabs(result - expected) < 1e-5) {
+        printf("Check OK\n");
+    } else {
+        printf("got=%f, expected=%f\n", result, expected);
+        printf("Check FAILED\n");
+    }
 
-  /* Cleanup */
-  free(x);
-  free(y);
+    /* Cleanup */
+    free(x);
+    free(y);
 
-  return EXIT_SUCCESS;
+    return EXIT_SUCCESS;
 }

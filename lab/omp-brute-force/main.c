@@ -118,63 +118,63 @@ irregularly depending on $P$. Why?
 
    Do not modify this function. */
 void xorcrypt(const char* in, char* out, int n, const char* key, int keylen) {
-  for (int i = 0; i < n; i++) {
-    out[i] = (char)(in[i] ^ key[i % keylen]);  // xor outputs an int
-  }
+    for (int i = 0; i < n; i++) {
+        out[i] = (char)(in[i] ^ key[i % keylen]);  // xor outputs an int
+    }
 }
 
 int main(void) {
-  const int KEY_LEN = 8;
-  /* encrypted message */
-  const char enc[] = {4,   1,  0,  1,  0,  1,  4,  1,  12, 9,  115, 18, 71,
-                      64,  64, 87, 90, 87, 87, 18, 83, 85, 95, 83,  26, 16,
-                      102, 90, 81, 20, 93, 88, 88, 73, 18, 69, 93,  90, 92,
-                      95,  90, 87, 18, 95, 91, 66, 87, 22, 93, 67,  18, 92,
-                      91,  64, 18, 66, 91, 16, 66, 94, 85, 77, 28,  54};
-  const int msglen = sizeof(enc);
-  const char check[] = "0123456789"; /* the correctly decrypted message starts
-                                        with these characters */
-  const int CHECK_LEN = strlen(check);
-  const int n = 100000000; /* number of possible keys */
-  volatile int found = 0;
-  char* out = (char*)malloc(msglen); /* where to put the decrypted message */
-  assert(out != NULL);
-
-  const double tstart = omp_get_wtime();
-#pragma omp parallel default(none) \
-    shared(KEY_LEN, msglen, n, found, enc, check, CHECK_LEN)
-  {
-    char key[KEY_LEN + 1]; /* sprintf will output the trailing \0, so we need
-                             one byte more for the key */
-    char* out = (char*)malloc(msglen);
+    const int KEY_LEN = 8;
+    /* encrypted message */
+    const char enc[] = {4,   1,  0,  1,  0,  1,  4,  1,  12, 9,  115, 18, 71,
+                        64,  64, 87, 90, 87, 87, 18, 83, 85, 95, 83,  26, 16,
+                        102, 90, 81, 20, 93, 88, 88, 73, 18, 69, 93,  90, 92,
+                        95,  90, 87, 18, 95, 91, 66, 87, 22, 93, 67,  18, 92,
+                        91,  64, 18, 66, 91, 16, 66, 94, 85, 77, 28,  54};
+    const int msglen = sizeof(enc);
+    const char check[] = "0123456789"; /* the correctly decrypted message starts
+                                          with these characters */
+    const int CHECK_LEN = strlen(check);
+    const int n = 100000000; /* number of possible keys */
+    volatile int found = 0;
+    char* out = (char*)malloc(msglen); /* where to put the decrypted message */
     assert(out != NULL);
 
-    const int my_id = omp_get_thread_num();
-    const int num_threads = omp_get_num_threads();
-    const int my_start = (n * my_id) / num_threads;
-    const int my_end = (n * (my_id + 1)) / num_threads;
+    const double tstart = omp_get_wtime();
+#pragma omp parallel default(none) \
+    shared(KEY_LEN, msglen, n, found, enc, check, CHECK_LEN)
+    {
+        char key[KEY_LEN + 1]; /* sprintf will output the trailing \0, so we
+                                 need one byte more for the key */
+        char* out = (char*)malloc(msglen);
+        assert(out != NULL);
 
-    for (int k = my_start; k < my_end && !found; k++) {
+        const int my_id = omp_get_thread_num();
+        const int num_threads = omp_get_num_threads();
+        const int my_start = (n * my_id) / num_threads;
+        const int my_end = (n * (my_id + 1)) / num_threads;
+
+        for (int k = my_start; k < my_end && !found; k++) {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wformat-truncation"
-      snprintf(key, KEY_LEN + 1, "%08d", k);
+            snprintf(key, KEY_LEN + 1, "%08d", k);
 #pragma GCC diagnostic pop
-      xorcrypt(enc, out, msglen, key, KEY_LEN);
-      /* `out` contains the decrypted text; if the key is not
-         correct, `out` will contain garbage */
-      if (0 == memcmp(out, check, CHECK_LEN)) {
-        printf("Key found: %s\n", key);
-        printf("Decrypted message: \"%s\"\n", out);
-        /* no critical section because worst case scenario the variable is just
-          written multiple times */
-        found = 1;
-      }
+            xorcrypt(enc, out, msglen, key, KEY_LEN);
+            /* `out` contains the decrypted text; if the key is not
+               correct, `out` will contain garbage */
+            if (0 == memcmp(out, check, CHECK_LEN)) {
+                printf("Key found: %s\n", key);
+                printf("Decrypted message: \"%s\"\n", out);
+                /* no critical section because worst case scenario the variable
+                  is just written multiple times */
+                found = 1;
+            }
+        }
+        free(out);
     }
-    free(out);
-  }
 
-  const double elapsed = omp_get_wtime() - tstart;
-  printf("Elapsed time: %f\n", elapsed);
-  assert(found); /* ensure that we did found the key */
-  return EXIT_SUCCESS;
+    const double elapsed = omp_get_wtime() - tstart;
+    printf("Elapsed time: %f\n", elapsed);
+    assert(found); /* ensure that we did found the key */
+    return EXIT_SUCCESS;
 }

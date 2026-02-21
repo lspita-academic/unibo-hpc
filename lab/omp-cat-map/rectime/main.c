@@ -71,24 +71,24 @@ Example:
 
 /* Compute the Greatest Common Divisor (GCD) of integers a>0 and b>0 */
 int gcd(int a, int b) {
-  assert(a > 0);
-  assert(b > 0);
+    assert(a > 0);
+    assert(b > 0);
 
-  while (b != a) {
-    if (a > b) {
-      a = a - b;
-    } else {
-      b = b - a;
+    while (b != a) {
+        if (a > b) {
+            a = a - b;
+        } else {
+            b = b - a;
+        }
     }
-  }
-  return a;
+    return a;
 }
 
 /* compute the Least Common Multiple (LCM) of integers a>0 and b>0 */
 int lcm(int a, int b) {
-  assert(a > 0);
-  assert(b > 0);
-  return (a / gcd(a, b)) * b;
+    assert(a > 0);
+    assert(b > 0);
+    return (a / gcd(a, b)) * b;
 }
 
 /**
@@ -98,66 +98,66 @@ int lcm(int a, int b) {
  * Least Common Multiple of all k(x,y).
  */
 int cat_map_rectime(int n) {
-  /* [TODO] Implement this function; start with a working serial
-     version, then parallelize. */
+    /* [TODO] Implement this function; start with a working serial
+       version, then parallelize. */
 
-  if (n == 0) return 0;
+    if (n == 0) return 0;
 
-  const int total_pixels = n * n;
-  int* const recurrences = (int*)calloc(total_pixels, sizeof(int));
+    const int total_pixels = n * n;
+    int* const recurrences = (int*)calloc(total_pixels, sizeof(int));
 
 #pragma omp parallel for collapse(2) default(none) shared(n, recurrences)
-  for (int y = 0; y < n; y++) {
-    for (int x = 0; x < n; x++) {
-      int xcur = x, ycur = y;
-      do {
-        const int xnext = (2 * xcur + ycur) % n;
-        const int ynext = (xcur + ycur) % n;
-        xcur = xnext;
-        ycur = ynext;
-        recurrences[y * n + x]++;
-      } while (xcur != x || ycur != y);
+    for (int y = 0; y < n; y++) {
+        for (int x = 0; x < n; x++) {
+            int xcur = x, ycur = y;
+            do {
+                const int xnext = (2 * xcur + ycur) % n;
+                const int ynext = (xcur + ycur) % n;
+                xcur = xnext;
+                ycur = ynext;
+                recurrences[y * n + x]++;
+            } while (xcur != x || ycur != y);
+        }
     }
-  }
 
 // custom reduction
 // slower when parallelized ????
 #pragma omp parallel default(none) shared(recurrences, total_pixels)
-  {
-    int n1 = total_pixels;
-    int n2;
-    do {
-      n2 = (n1 + 1) / 2;
+    {
+        int n1 = total_pixels;
+        int n2;
+        do {
+            n2 = (n1 + 1) / 2;
 #pragma omp for
-      for (int i = 0; i < n2; i++) {
-        if (i + n2 < n1) {
-          recurrences[i] = lcm(recurrences[i], recurrences[i + n2]);
-        }
-      }
-      n1 = n2;
-    } while (n2 > 1);
-  }
+            for (int i = 0; i < n2; i++) {
+                if (i + n2 < n1) {
+                    recurrences[i] = lcm(recurrences[i], recurrences[i + n2]);
+                }
+            }
+            n1 = n2;
+        } while (n2 > 1);
+    }
 
-  const int total_lcm = recurrences[0];
-  free(recurrences);
+    const int total_lcm = recurrences[0];
+    free(recurrences);
 
-  return total_lcm;
+    return total_lcm;
 }
 
 int main(int argc, char* argv[]) {
-  int n, k;
+    int n, k;
 
-  if (argc != 2) {
-    fprintf(stderr, "Usage: %s image_size\n", argv[0]);
-    return EXIT_FAILURE;
-  }
-  n = atoi(argv[1]);
-  const double tstart = omp_get_wtime();
-  k = cat_map_rectime(n);
-  const double elapsed = omp_get_wtime() - tstart;
-  printf("%d\n", k);
+    if (argc != 2) {
+        fprintf(stderr, "Usage: %s image_size\n", argv[0]);
+        return EXIT_FAILURE;
+    }
+    n = atoi(argv[1]);
+    const double tstart = omp_get_wtime();
+    k = cat_map_rectime(n);
+    const double elapsed = omp_get_wtime() - tstart;
+    printf("%d\n", k);
 
-  printf("Execution time %.3f\n", elapsed);
+    printf("Execution time %.3f\n", elapsed);
 
-  return EXIT_SUCCESS;
+    return EXIT_SUCCESS;
 }

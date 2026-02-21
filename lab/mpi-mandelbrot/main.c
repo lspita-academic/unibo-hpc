@@ -100,9 +100,9 @@ const int MAXIT = 100;
    the compiler that the fields of this structure should not be padded
    or aligned in any way. */
 typedef struct __attribute__((__packed__)) {
-  uint8_t r; /* red   */
-  uint8_t g; /* green */
-  uint8_t b; /* blue  */
+    uint8_t r; /* red   */
+    uint8_t g; /* green */
+    uint8_t b; /* blue  */
 } pixel_t;
 
 /* color gradient from
@@ -138,15 +138,15 @@ const int NCOLORS = sizeof(colors) / sizeof(colors[0]);
  * `bound` after `MAXIT` iterations.
  */
 int iterate(float cx, float cy) {
-  float x = 0.0f, y = 0.0f, xnew, ynew;
-  int it;
-  for (it = 0; (it < MAXIT) && (x * x + y * y <= 2.0 * 2.0); it++) {
-    xnew = x * x - y * y + cx;
-    ynew = 2.0 * x * y + cy;
-    x = xnew;
-    y = ynew;
-  }
-  return it;
+    float x = 0.0f, y = 0.0f, xnew, ynew;
+    int it;
+    for (it = 0; (it < MAXIT) && (x * x + y * y <= 2.0 * 2.0); it++) {
+        xnew = x * x - y * y + cx;
+        ynew = 2.0 * x * y + cy;
+        x = xnew;
+        y = ynew;
+    }
+    return it;
 }
 
 /* Draw the rows of the Mandelbrot set from `ystart` (inclusive) to
@@ -156,116 +156,116 @@ int iterate(float cx, float cy) {
    pixels p[0], p[1], ... `xsize` and `ysize` MUST be the sizes
    of the WHOLE image. */
 void draw_lines(int ystart, int yend, pixel_t* p, int xsize, int ysize) {
-  const float XMIN = -2.3, XMAX = 1.0;
-  const float SCALE = (XMAX - XMIN) * ysize / xsize;
-  const float YMIN = -SCALE / 2, YMAX = SCALE / 2;
-  int x, y;
+    const float XMIN = -2.3, XMAX = 1.0;
+    const float SCALE = (XMAX - XMIN) * ysize / xsize;
+    const float YMIN = -SCALE / 2, YMAX = SCALE / 2;
+    int x, y;
 
-  for (y = ystart; y < yend; y++) {
-    for (x = 0; x < xsize; x++) {
-      const float re = XMIN + (XMAX - XMIN) * (float)(x) / (xsize - 1);
-      const float im = YMAX - (YMAX - YMIN) * (float)(y) / (ysize - 1);
-      const int v = iterate(re, im);
+    for (y = ystart; y < yend; y++) {
+        for (x = 0; x < xsize; x++) {
+            const float re = XMIN + (XMAX - XMIN) * (float)(x) / (xsize - 1);
+            const float im = YMAX - (YMAX - YMIN) * (float)(y) / (ysize - 1);
+            const int v = iterate(re, im);
 
-      if (v < MAXIT) {
-        p->r = colors[v % NCOLORS].r;
-        p->g = colors[v % NCOLORS].g;
-        p->b = colors[v % NCOLORS].b;
-      } else {
-        p->r = p->g = p->b = 0;
-      }
-      p++;
+            if (v < MAXIT) {
+                p->r = colors[v % NCOLORS].r;
+                p->g = colors[v % NCOLORS].g;
+                p->b = colors[v % NCOLORS].b;
+            } else {
+                p->r = p->g = p->b = 0;
+            }
+            p++;
+        }
     }
-  }
 }
 
 int main(int argc, char* argv[]) {
-  int my_rank, comm_sz;
-  FILE* out = NULL;
-  const char* fname = "mpi-mandelbrot.ppm";
-  pixel_t* bitmap = NULL;
-  int xsize, ysize;
+    int my_rank, comm_sz;
+    FILE* out = NULL;
+    const char* fname = "mpi-mandelbrot.ppm";
+    pixel_t* bitmap = NULL;
+    int xsize, ysize;
 
-  MPI_Init(&argc, &argv);
-  MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
-  MPI_Comm_size(MPI_COMM_WORLD, &comm_sz);
+    MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &comm_sz);
 
-  if (argc > 1) {
-    ysize = atoi(argv[1]);
-  } else {
-    ysize = 1024;
-  }
-
-  xsize = ysize * 1.4;
-
-  /* xsize and ysize are known to all processes */
-  if (0 == my_rank) {
-    out = fopen(fname, "w");
-    if (!out) {
-      fprintf(stderr, "Error: cannot create %s\n", fname);
-      MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
+    if (argc > 1) {
+        ysize = atoi(argv[1]);
+    } else {
+        ysize = 1024;
     }
 
-    /* Write the header of the output file */
-    fprintf(out, "P6\n");
-    fprintf(out, "%d %d\n", xsize, ysize);
-    fprintf(out, "255\n");
+    xsize = ysize * 1.4;
 
-    /* Allocate the complete bitmap */
-    bitmap = (pixel_t*)malloc(xsize * ysize * sizeof(*bitmap));
-    assert(bitmap != NULL);
-  }
-  /* This version makes use of MPI_Gatherv to collect portions of
-     different sizes. To compile this version, use:
+    /* xsize and ysize are known to all processes */
+    if (0 == my_rank) {
+        out = fopen(fname, "w");
+        if (!out) {
+            fprintf(stderr, "Error: cannot create %s\n", fname);
+            MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
+        }
 
-     mpicc -std=c99 -Wall -Wpedantic -DUSE_GATHERV mpi-mandelbrot.c -o
-     mpi-mandelbrot
+        /* Write the header of the output file */
+        fprintf(out, "P6\n");
+        fprintf(out, "%d %d\n", xsize, ysize);
+        fprintf(out, "255\n");
 
-  */
-  int ystart[comm_sz], yend[comm_sz], counts[comm_sz], displs[comm_sz];
-  for (int i = 0; i < comm_sz; i++) {
-    ystart[i] = ysize * i / comm_sz;
-    yend[i] = ysize * (i + 1) / comm_sz;
-    /* counts[] and displs[] must be measured as the number of
-       "array elements", NOT bytes; however, in this case the type
-       of array elements that are gathered together is MPI_BYTE
-       (see MPI_Gatherv below), so we need to multiply by
-       sizeof(pixel_t) */
-    counts[i] = (yend[i] - ystart[i]) * xsize * sizeof(pixel_t);
-    displs[i] = ystart[i] * xsize * sizeof(pixel_t);
-  }
+        /* Allocate the complete bitmap */
+        bitmap = (pixel_t*)malloc(xsize * ysize * sizeof(*bitmap));
+        assert(bitmap != NULL);
+    }
+    /* This version makes use of MPI_Gatherv to collect portions of
+       different sizes. To compile this version, use:
 
-  pixel_t* local_bitmap = (pixel_t*)malloc(counts[my_rank]);
-  assert(local_bitmap != NULL);
+       mpicc -std=c99 -Wall -Wpedantic -DUSE_GATHERV mpi-mandelbrot.c -o
+       mpi-mandelbrot
 
-  const double tstart = MPI_Wtime();
+    */
+    int ystart[comm_sz], yend[comm_sz], counts[comm_sz], displs[comm_sz];
+    for (int i = 0; i < comm_sz; i++) {
+        ystart[i] = ysize * i / comm_sz;
+        yend[i] = ysize * (i + 1) / comm_sz;
+        /* counts[] and displs[] must be measured as the number of
+           "array elements", NOT bytes; however, in this case the type
+           of array elements that are gathered together is MPI_BYTE
+           (see MPI_Gatherv below), so we need to multiply by
+           sizeof(pixel_t) */
+        counts[i] = (yend[i] - ystart[i]) * xsize * sizeof(pixel_t);
+        displs[i] = ystart[i] * xsize * sizeof(pixel_t);
+    }
 
-  draw_lines(ystart[my_rank], yend[my_rank], local_bitmap, xsize, ysize);
+    pixel_t* local_bitmap = (pixel_t*)malloc(counts[my_rank]);
+    assert(local_bitmap != NULL);
 
-  MPI_Gatherv(
-      local_bitmap,    /* sendbuf      */
-      counts[my_rank], /* sendcount    */
-      MPI_BYTE,        /* datatype     */
-      bitmap,          /* recvbuf      */
-      counts,          /* recvcounts[] */
-      displs,          /* displacements[] */
-      MPI_BYTE,        /* datatype     */
-      0,               /* root         */
-      MPI_COMM_WORLD
-  );
+    const double tstart = MPI_Wtime();
 
-  const double elapsed = MPI_Wtime() - tstart;
+    draw_lines(ystart[my_rank], yend[my_rank], local_bitmap, xsize, ysize);
 
-  if (0 == my_rank) {
-    fwrite(bitmap, sizeof(*bitmap), xsize * ysize, out);
-    fclose(out);
+    MPI_Gatherv(
+        local_bitmap,    /* sendbuf      */
+        counts[my_rank], /* sendcount    */
+        MPI_BYTE,        /* datatype     */
+        bitmap,          /* recvbuf      */
+        counts,          /* recvcounts[] */
+        displs,          /* displacements[] */
+        MPI_BYTE,        /* datatype     */
+        0,               /* root         */
+        MPI_COMM_WORLD
+    );
 
-    printf("Execution time %.3f\n", elapsed);
-  }
-  free(bitmap);
-  free(local_bitmap);
+    const double elapsed = MPI_Wtime() - tstart;
 
-  MPI_Finalize();
+    if (0 == my_rank) {
+        fwrite(bitmap, sizeof(*bitmap), xsize * ysize, out);
+        fclose(out);
 
-  return EXIT_SUCCESS;
+        printf("Execution time %.3f\n", elapsed);
+    }
+    free(bitmap);
+    free(local_bitmap);
+
+    MPI_Finalize();
+
+    return EXIT_SUCCESS;
 }

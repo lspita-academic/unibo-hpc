@@ -140,49 +140,49 @@ typedef int (*make_hist_function_t)(const char*, int[ALPHA_SIZE]);
  * found.
  */
 int make_hist(const char* text, int hist[ALPHA_SIZE]) {
-  puts("make hist: serial");
-  int nlet = 0; /* total number of alphabetic characters processed */
-  const size_t TEXT_LEN = strlen(text);
+    puts("make hist: serial");
+    int nlet = 0; /* total number of alphabetic characters processed */
+    const size_t TEXT_LEN = strlen(text);
 
-  /* Reset the histogram */
-  for (int j = 0; j < ALPHA_SIZE; j++) {
-    hist[j] = 0;
-  }
-
-  /* Count occurrences */
-  for (size_t i = 0; i < TEXT_LEN; i++) {
-    const char c = text[i];
-    if (isalpha(c)) {
-      nlet++;
-      hist[tolower(c) - 'a']++;
+    /* Reset the histogram */
+    for (int j = 0; j < ALPHA_SIZE; j++) {
+        hist[j] = 0;
     }
-  }
 
-  return nlet;
+    /* Count occurrences */
+    for (size_t i = 0; i < TEXT_LEN; i++) {
+        const char c = text[i];
+        if (isalpha(c)) {
+            nlet++;
+            hist[tolower(c) - 'a']++;
+        }
+    }
+
+    return nlet;
 }
 
 int make_hist_parallel(const char* text, int hist[ALPHA_SIZE]) {
-  puts("make hist: parallel");
-  int nlet = 0; /* total number of alphabetic characters processed */
-  const size_t TEXT_LEN = strlen(text);
+    puts("make hist: parallel");
+    int nlet = 0; /* total number of alphabetic characters processed */
+    const size_t TEXT_LEN = strlen(text);
 
-  /* Reset the histogram */
-  for (int j = 0; j < ALPHA_SIZE; j++) {
-    hist[j] = 0;
-  }
+    /* Reset the histogram */
+    for (int j = 0; j < ALPHA_SIZE; j++) {
+        hist[j] = 0;
+    }
 
-  /* Count occurrences */
+    /* Count occurrences */
 #pragma omp parallel for default(none) shared(TEXT_LEN, text) \
     reduction(+ : nlet) reduction(+ : hist[ : ALPHA_SIZE])
-  for (size_t i = 0; i < TEXT_LEN; i++) {
-    const char c = text[i];
-    if (isalpha(c)) {
-      nlet++;
-      hist[tolower(c) - 'a']++;
+    for (size_t i = 0; i < TEXT_LEN; i++) {
+        const char c = text[i];
+        if (isalpha(c)) {
+            nlet++;
+            hist[tolower(c) - 'a']++;
+        }
     }
-  }
 
-  return nlet;
+    return nlet;
 }
 
 /**
@@ -190,53 +190,53 @@ int make_hist_parallel(const char* text, int hist[ALPHA_SIZE]) {
  * of `len` characters proportional to `freq`.
  */
 void bar(float freq, int len) {
-  for (int i = 0; i < ((float)len) * freq / 100.0; i++) {
-    printf("#");
-  }
+    for (int i = 0; i < ((float)len) * freq / 100.0; i++) {
+        printf("#");
+    }
 }
 
 /**
  * Print frequencies
  */
 void print_hist(int hist[ALPHA_SIZE]) {
-  int nlet = 0;
-  for (int i = 0; i < ALPHA_SIZE; i++) {
-    nlet += hist[i];
-  }
-  for (int i = 0; i < ALPHA_SIZE; i++) {
-    const float freq = 100.0f * ((float)hist[i] / (float)nlet);
-    printf("%c : %8d (%6.2f%%) ", 'a' + i, hist[i], freq);
-    bar(freq, EXRTACT_LEN);
-    printf("\n");
-  }
-  printf("    %8d total\n", nlet);
+    int nlet = 0;
+    for (int i = 0; i < ALPHA_SIZE; i++) {
+        nlet += hist[i];
+    }
+    for (int i = 0; i < ALPHA_SIZE; i++) {
+        const float freq = 100.0f * ((float)hist[i] / (float)nlet);
+        printf("%c : %8d (%6.2f%%) ", 'a' + i, hist[i], freq);
+        bar(freq, EXRTACT_LEN);
+        printf("\n");
+    }
+    printf("    %8d total\n", nlet);
 }
 
 int main(void) {
-  int hist[ALPHA_SIZE];
-  const size_t size = MAX_SIZE;
-  char* text = (char*)malloc(size);
-  assert(text != NULL);
+    int hist[ALPHA_SIZE];
+    const size_t size = MAX_SIZE;
+    char* text = (char*)malloc(size);
+    assert(text != NULL);
 
-  const size_t len = fread(text, 1, size - 1, stdin);
-  text[len] = '\0'; /* put a termination mark at the end of the text */
-  make_hist_function_t make_hist_functions[] = {
-      make_hist,
-      make_hist_parallel,
-  };
-  const size_t make_hist_functions_n =
-      sizeof(make_hist_functions) / sizeof(make_hist_function_t);
+    const size_t len = fread(text, 1, size - 1, stdin);
+    text[len] = '\0'; /* put a termination mark at the end of the text */
+    make_hist_function_t make_hist_functions[] = {
+        make_hist,
+        make_hist_parallel,
+    };
+    const size_t make_hist_functions_n =
+        sizeof(make_hist_functions) / sizeof(make_hist_function_t);
 
-  for (size_t i = 0; i < make_hist_functions_n; i++) {
-    puts("=== START ===");
-    const double tstart = omp_get_wtime();
-    make_hist_functions[i](text, hist);
-    const double elapsed = omp_get_wtime() - tstart;
-    print_hist(hist);
-    fprintf(stderr, "Execution time %.3f\n", elapsed);
-    puts("=== END ===");
-  }
+    for (size_t i = 0; i < make_hist_functions_n; i++) {
+        puts("=== START ===");
+        const double tstart = omp_get_wtime();
+        make_hist_functions[i](text, hist);
+        const double elapsed = omp_get_wtime() - tstart;
+        print_hist(hist);
+        fprintf(stderr, "Execution time %.3f\n", elapsed);
+        puts("=== END ===");
+    }
 
-  free(text);
-  return EXIT_SUCCESS;
+    free(text);
+    return EXIT_SUCCESS;
 }

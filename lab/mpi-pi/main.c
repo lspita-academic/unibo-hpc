@@ -115,87 +115,87 @@ int my_rank, comm_sz;
    (1, 1); return the number of points that fall inside the circle
    centered ad the origin with radius 1 */
 int generate_points(int n) {
-  int n_inside = 0;
-  for (int i = 0; i < n; i++) {
-    const double x = (rand() / (double)RAND_MAX * 2.0) - 1.0;
-    const double y = (rand() / (double)RAND_MAX * 2.0) - 1.0;
-    if (x * x + y * y < 1.0) {
-      n_inside++;
+    int n_inside = 0;
+    for (int i = 0; i < n; i++) {
+        const double x = (rand() / (double)RAND_MAX * 2.0) - 1.0;
+        const double y = (rand() / (double)RAND_MAX * 2.0) - 1.0;
+        if (x * x + y * y < 1.0) {
+            n_inside++;
+        }
     }
-  }
-  return n_inside;
+    return n_inside;
 }
 
 int mpi_generate_points_naive(int n) {
-  int I;
-  switch (my_rank) {
-    case MASTER_RANK:
-      puts("generate points: mpi naive");
-      I = generate_points((n / comm_sz) + (n % comm_sz));
-      for (int rank = 0; rank < comm_sz - 1; rank++) {
-        int buff;
-        MPI_Recv(
-            &buff,
-            1,
-            MPI_INT,
-            MPI_ANY_SOURCE,
-            VALUE_TAG,
-            MPI_COMM_WORLD,
-            MPI_STATUS_IGNORE
-        );
-        I += buff;
-      }
-      break;
-    default:
-      I = generate_points(n / comm_sz);
-      MPI_Send(&I, 1, MPI_INT, MASTER_RANK, VALUE_TAG, MPI_COMM_WORLD);
-      break;
-  }
-  return I;
+    int I;
+    switch (my_rank) {
+        case MASTER_RANK:
+            puts("generate points: mpi naive");
+            I = generate_points((n / comm_sz) + (n % comm_sz));
+            for (int rank = 0; rank < comm_sz - 1; rank++) {
+                int buff;
+                MPI_Recv(
+                    &buff,
+                    1,
+                    MPI_INT,
+                    MPI_ANY_SOURCE,
+                    VALUE_TAG,
+                    MPI_COMM_WORLD,
+                    MPI_STATUS_IGNORE
+                );
+                I += buff;
+            }
+            break;
+        default:
+            I = generate_points(n / comm_sz);
+            MPI_Send(&I, 1, MPI_INT, MASTER_RANK, VALUE_TAG, MPI_COMM_WORLD);
+            break;
+    }
+    return I;
 }
 
 int main(int argc, char* argv[]) {
-  int inside = 0, npoints = 1000000;
-  double pi_approx;
+    int inside = 0, npoints = 1000000;
+    double pi_approx;
 
-  MPI_Init(&argc, &argv);
-  MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
-  MPI_Comm_size(MPI_COMM_WORLD, &comm_sz);
+    MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &comm_sz);
 
-  if (argc > 1) {
-    npoints = atoi(argv[1]);
-  }
-
-  /* Each process initializes the pseudo-random number generator; if
-     we don't do this (or something similar), each process would
-     produce the exact same sequence of pseudo-random numbers! */
-  srand(my_rank * 11 + 7);
-
-  /* [TODO] This is not a true parallel version; the master does
-     everything */
-  generate_points_function_t generate_points_functions[] = {
-      mpi_generate_points_naive,
-  };
-  const size_t generate_points_n =
-      sizeof(generate_points_functions) / sizeof(generate_points_function_t);
-  for (size_t i = 0; i < generate_points_n; i++) {
-    if (my_rank == MASTER_RANK) {
-      puts("=== START ===");
-      printf("Generating %u points...\n", npoints);
+    if (argc > 1) {
+        npoints = atoi(argv[1]);
     }
-    inside = generate_points_functions[i](npoints);
-    if (my_rank == MASTER_RANK) {
-      pi_approx = 4.0 * inside / (double)npoints;
-      printf(
-          "PI approximation is %f (true value=%f, rel error=%.3f%%)\n",
-          pi_approx,
-          M_PI,
-          100.0 * fabs(pi_approx - M_PI) / M_PI
-      );
-      puts("=== END ===");
-    }
-  }
 
-  MPI_Finalize();
-  return EXIT_SUCCESS;
+    /* Each process initializes the pseudo-random number generator; if
+       we don't do this (or something similar), each process would
+       produce the exact same sequence of pseudo-random numbers! */
+    srand(my_rank * 11 + 7);
+
+    /* [TODO] This is not a true parallel version; the master does
+       everything */
+    generate_points_function_t generate_points_functions[] = {
+        mpi_generate_points_naive,
+    };
+    const size_t generate_points_n =
+        sizeof(generate_points_functions) / sizeof(generate_points_function_t);
+    for (size_t i = 0; i < generate_points_n; i++) {
+        if (my_rank == MASTER_RANK) {
+            puts("=== START ===");
+            printf("Generating %u points...\n", npoints);
+        }
+        inside = generate_points_functions[i](npoints);
+        if (my_rank == MASTER_RANK) {
+            pi_approx = 4.0 * inside / (double)npoints;
+            printf(
+                "PI approximation is %f (true value=%f, rel error=%.3f%%)\n",
+                pi_approx,
+                M_PI,
+                100.0 * fabs(pi_approx - M_PI) / M_PI
+            );
+            puts("=== END ===");
+        }
+    }
+
+    MPI_Finalize();
+    return EXIT_SUCCESS;
 }

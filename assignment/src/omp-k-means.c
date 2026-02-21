@@ -15,6 +15,6 @@
 #include "safety.h"
 
 int main(void) {
-  printf("Hello, World!\n");
-  safe_exit(EXIT_SUCCESS);
+    printf("Hello, World!\n");
+    safe_exit(EXIT_SUCCESS);
 }

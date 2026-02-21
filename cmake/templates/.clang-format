@@ -1,4 +1,5 @@
 BasedOnStyle: Google
+IndentWidth: 4
 # When you have lot of arguments or parameters, put them on new lines
 BinPackArguments: false
 BinPackParameters: false

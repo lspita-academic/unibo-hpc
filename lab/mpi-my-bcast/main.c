@@ -93,59 +93,59 @@ To execute:
 #define VALUE_TAG 0
 
 void send_if_exists(int* v, int dest, int comm_sz) {
-  if (dest >= comm_sz) return;
-  MPI_Send(v, 1, MPI_INT, dest, VALUE_TAG, MPI_COMM_WORLD);
+    if (dest >= comm_sz) return;
+    MPI_Send(v, 1, MPI_INT, dest, VALUE_TAG, MPI_COMM_WORLD);
 }
 
 void my_Bcast(int* v) {
-  int my_rank, comm_sz;
+    int my_rank, comm_sz;
 
-  MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
-  MPI_Comm_size(MPI_COMM_WORLD, &comm_sz);
+    MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &comm_sz);
 
-  if (my_rank != MASTER_RANK) {
-    MPI_Recv(
-        v,                  // buf
-        1,                  // count
-        MPI_INT,            // datatype
-        (my_rank - 1) / 2,  // source
-        VALUE_TAG,          // tag
-        MPI_COMM_WORLD,     // comm
-        MPI_STATUS_IGNORE   // status
-    );
-  }
+    if (my_rank != MASTER_RANK) {
+        MPI_Recv(
+            v,                  // buf
+            1,                  // count
+            MPI_INT,            // datatype
+            (my_rank - 1) / 2,  // source
+            VALUE_TAG,          // tag
+            MPI_COMM_WORLD,     // comm
+            MPI_STATUS_IGNORE   // status
+        );
+    }
 
-  send_if_exists(v, (2 * my_rank) + 1, comm_sz);
-  send_if_exists(v, (2 * my_rank) + 2, comm_sz);
+    send_if_exists(v, (2 * my_rank) + 1, comm_sz);
+    send_if_exists(v, (2 * my_rank) + 2, comm_sz);
 }
 
 int main(int argc, char* argv[]) {
-  const int SENDVAL = 123; /* value to be broadcasted */
-  int my_rank;
-  int v;
+    const int SENDVAL = 123; /* value to be broadcasted */
+    int my_rank;
+    int v;
 
-  MPI_Init(&argc, &argv);
-  MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
+    MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
 
-  /* only process 0 sets `v` to the value to be broadcasted. */
-  if (my_rank == MASTER_RANK) {
-    v = SENDVAL;
-  } else {
-    v = -1;
-  }
+    /* only process 0 sets `v` to the value to be broadcasted. */
+    if (my_rank == MASTER_RANK) {
+        v = SENDVAL;
+    } else {
+        v = -1;
+    }
 
-  /* printf("BEFORE: value of `v` at rank %d = %d\n", my_rank, v); */
+    /* printf("BEFORE: value of `v` at rank %d = %d\n", my_rank, v); */
 
-  my_Bcast(&v);
+    my_Bcast(&v);
 
-  if (v == SENDVAL) {
-    printf("OK: ");
-  } else {
-    printf("ERROR: ");
-  }
-  printf("value of `v` at rank %d = %d\n", my_rank, v);
+    if (v == SENDVAL) {
+        printf("OK: ");
+    } else {
+        printf("ERROR: ");
+    }
+    printf("value of `v` at rank %d = %d\n", my_rank, v);
 
-  MPI_Finalize();
+    MPI_Finalize();
 
-  return EXIT_SUCCESS;
+    return EXIT_SUCCESS;
 }

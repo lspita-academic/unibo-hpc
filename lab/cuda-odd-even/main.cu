@@ -115,34 +115,34 @@ Example:
 
 /* if *a > *b, swap them. Otherwise do nothing */
 __device__ void cmp_and_swap(int* a, int* b) {
-  if (*a > *b) {
-    int tmp = *a;
-    *a = *b;
-    *b = tmp;
-  }
+    if (*a > *b) {
+        int tmp = *a;
+        *a = *b;
+        *b = tmp;
+    }
 }
 
 __global__ void cmp_and_swap_kernel(int* v, int n, int phase) {
-  const int thread_id = (blockIdx.x * blockDim.x) + threadIdx.x;
-  const int i = (thread_id * 2) + (phase % 2);
-  if (i < n - 1) {
-    cmp_and_swap(&v[i], &v[i + 1]);
-  }
+    const int thread_id = (blockIdx.x * blockDim.x) + threadIdx.x;
+    const int i = (thread_id * 2) + (phase % 2);
+    if (i < n - 1) {
+        cmp_and_swap(&v[i], &v[i + 1]);
+    }
 }
 
 void cuda_odd_even_sort(int* v, int n) {
-  int* d_v;
-  const size_t size = n * sizeof(*d_v);
-  const size_t n_blocks = ((n / 2) + BLKDIM - 1) / BLKDIM;
+    int* d_v;
+    const size_t size = n * sizeof(*d_v);
+    const size_t n_blocks = ((n / 2) + BLKDIM - 1) / BLKDIM;
 
-  cudaSafeCall(cudaMalloc(&d_v, size));
-  cudaSafeCall(cudaMemcpy(d_v, v, size, cudaMemcpyHostToDevice));
-  for (int phase = 0; phase < n; phase++) {
-    cmp_and_swap_kernel<<<n_blocks, BLKDIM>>>(d_v, n, phase);
-    cudaCheckError();  // device sync
-  }
-  cudaSafeCall(cudaMemcpy(v, d_v, size, cudaMemcpyDeviceToHost));
-  cudaSafeCall(cudaFree(d_v));
+    cudaSafeCall(cudaMalloc(&d_v, size));
+    cudaSafeCall(cudaMemcpy(d_v, v, size, cudaMemcpyHostToDevice));
+    for (int phase = 0; phase < n; phase++) {
+        cmp_and_swap_kernel<<<n_blocks, BLKDIM>>>(d_v, n, phase);
+        cudaCheckError();  // device sync
+    }
+    cudaSafeCall(cudaMemcpy(v, d_v, size, cudaMemcpyDeviceToHost));
+    cudaSafeCall(cudaFree(d_v));
 }
 
 /**
@@ -154,68 +154,70 @@ int randab(int a, int b) { return a + (rand() % (b - a + 1)); }
  * Fill vector x with a random permutation of the integers 0..n-1
  */
 void fill(int* x, int n) {
-  for (int i = 0; i < n; i++) {
-    x[i] = i;
-  }
-  for (int i = 0; i < n - 1; i++) {
-    const int j = randab(i, n - 1);
-    const int tmp = x[i];
-    x[i] = x[j];
-    x[j] = tmp;
-  }
+    for (int i = 0; i < n; i++) {
+        x[i] = i;
+    }
+    for (int i = 0; i < n - 1; i++) {
+        const int j = randab(i, n - 1);
+        const int tmp = x[i];
+        x[i] = x[j];
+        x[j] = tmp;
+    }
 }
 
 /**
  * Check correctness of the result
  */
 int check(const int* x, int n) {
-  for (int i = 0; i < n; i++) {
-    if (x[i] != i) {
-      fprintf(stderr, "Check FAILED: x[%d]=%d, expected %d\n", i, x[i], i);
-      return 0;
+    for (int i = 0; i < n; i++) {
+        if (x[i] != i) {
+            fprintf(
+                stderr, "Check FAILED: x[%d]=%d, expected %d\n", i, x[i], i
+            );
+            return 0;
+        }
     }
-  }
-  printf("Check OK\n");
-  return 1;
+    printf("Check OK\n");
+    return 1;
 }
 
 int main(int argc, char* argv[]) {
-  int* x;
-  int n = 128 * 1024;
-  const int MAX_N = 512 * 1024 * 1024;
-  double tstart, elapsed;
+    int* x;
+    int n = 128 * 1024;
+    const int MAX_N = 512 * 1024 * 1024;
+    double tstart, elapsed;
 
-  if (argc > 2) {
-    fprintf(stderr, "Usage: %s [len]\n", argv[0]);
-    return EXIT_FAILURE;
-  }
+    if (argc > 2) {
+        fprintf(stderr, "Usage: %s [len]\n", argv[0]);
+        return EXIT_FAILURE;
+    }
 
-  if (argc > 1) {
-    n = atoi(argv[1]);
-  }
+    if (argc > 1) {
+        n = atoi(argv[1]);
+    }
 
-  if (n > MAX_N) {
-    fprintf(stderr, "FATAL: the maximum length is %d\n", MAX_N);
-    return EXIT_FAILURE;
-  }
+    if (n > MAX_N) {
+        fprintf(stderr, "FATAL: the maximum length is %d\n", MAX_N);
+        return EXIT_FAILURE;
+    }
 
-  const size_t SIZE = n * sizeof(*x);
+    const size_t SIZE = n * sizeof(*x);
 
-  /* Allocate space for x on host */
-  x = (int*)malloc(SIZE);
-  assert(x != NULL);
-  fill(x, n);
+    /* Allocate space for x on host */
+    x = (int*)malloc(SIZE);
+    assert(x != NULL);
+    fill(x, n);
 
-  tstart = hpc_gettime();
-  cuda_odd_even_sort(x, n);
-  elapsed = hpc_gettime() - tstart;
-  printf("Sorted %d elements in %f seconds\n", n, elapsed);
+    tstart = hpc_gettime();
+    cuda_odd_even_sort(x, n);
+    elapsed = hpc_gettime() - tstart;
+    printf("Sorted %d elements in %f seconds\n", n, elapsed);
 
-  /* Check result */
-  check(x, n);
+    /* Check result */
+    check(x, n);
 
-  /* Cleanup */
-  free(x);
+    /* Cleanup */
+    free(x);
 
-  return EXIT_SUCCESS;
+    return EXIT_SUCCESS;
 }
