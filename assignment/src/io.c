@@ -7,7 +7,7 @@
 
 #include "safety.h"
 
-#define INPUT_FILE_ROW_BUFLEN 10
+#define INPUT_FILE_ROW_BUFLEN 1024
 
 void update_dimensions(
     size_t current_dims, size_t* out_points, size_t* out_dims
@@ -44,8 +44,16 @@ void read_input_file_dimensions(
         }
 
         input_item_t item;
-        while (sscanf(row_buffer, INPUT_ITEM_READ_FORMAT, &item) > 0) {
+        size_t item_offset = 0;
+        int item_chars = 0;
+        while (sscanf(
+                   row_buffer + item_offset,
+                   INPUT_ITEM_READ_FORMAT "%n",
+                   &item,
+                   &item_chars
+               ) > 0) {
             current_dims++;
+            item_offset += item_chars;
         }
 
         /*
@@ -80,7 +88,7 @@ input_item_t* read_input_file_items(
     input_item_t* items = safe_malloc(sizeof(*items) * points * dims);
 
     for (size_t i = 0; i < points * dims; i++) {
-        int nread = fscanf(input_file, "%f", &items[i]);
+        int nread = fscanf(input_file, INPUT_ITEM_READ_FORMAT, &items[i]);
         safe_assert(nread == 1, "Failed to read input file item\n");
     }
     return items;

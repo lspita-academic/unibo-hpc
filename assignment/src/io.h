@@ -4,9 +4,10 @@
 #include <stddef.h>
 #include <stdio.h>
 
-#define INPUT_ITEM_READ_FORMAT "%f"
+#define INPUT_ITEM_READ_FORMAT "%lf"
+#define INPUT_ITEM_PRINT_FORMAT "%lf"
 
-typedef float input_item_t;
+typedef double input_item_t;
 
 typedef struct InputData {
     size_t points;
