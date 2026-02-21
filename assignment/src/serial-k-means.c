@@ -16,7 +16,6 @@
 #include "cli.h"
 #include "points.h"
 #include "safety.h"
-#include "utils.h"
 
 #define MAX_ITER 100
 #define TOL 1e-5
@@ -37,16 +36,7 @@ int main(int argc, char* argv[]) {
     printf("Dims: %lu\n\n", points.dimensions);
 
     FILE* output_file = safe_fopen(args.output_file_path, "w");
-    for (size_t i = 0; i < points.size; i++) {
-        for (size_t j = 0; j < points.dimensions; j++) {
-            fprintf(
-                output_file,
-                POINT_COORD_PRINT_FORMAT " ",
-                points.data[flat_index(i, j, points.dimensions)]
-            );
-        }
-        fputc('\n', output_file);
-    }
+    print_points_collection(output_file, &points);
     fclose(output_file);
 
     points_collection_free(&points);

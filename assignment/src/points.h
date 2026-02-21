@@ -17,5 +17,6 @@ typedef struct PointsCollection {
 
 PointsCollection read_points_collection(FILE* stream);
 void points_collection_free(PointsCollection* points);
+void print_points_collection(FILE* stream, PointsCollection* points);
 
 #endif  // IO_H

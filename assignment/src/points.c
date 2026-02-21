@@ -6,6 +6,7 @@
 #include <string.h>
 
 #include "safety.h"
+#include "utils.h"
 
 #define STREAM_ROW_BUFLEN 1024
 
@@ -108,3 +109,13 @@ PointsCollection read_points_collection(FILE* input_file) {
 }
 
 void points_collection_free(PointsCollection* points) { free(points->data); }
+
+void print_points_collection(FILE* stream, PointsCollection* points) {
+    for (size_t i = 0; i < points->size; i++) {
+        for (size_t j = 0; j < points->dimensions; j++) {
+            size_t idx = flat_index(i, j, points->dimensions);
+            fprintf(stream, POINT_COORD_PRINT_FORMAT " ", points->data[idx]);
+        }
+        fputc('\n', stream);
+    }
+}
