@@ -21,7 +21,7 @@
 #define TOL 1e-5
 
 int main(int argc, char* argv[]) {
-    CliArgs args = parse_cli_args(argc, argv);
+    CLIArgs args = parse_cli_args(argc, argv);
 
     printf("K: %lu\n", args.k);
     printf("Input file: %s\n", args.input_file_path);

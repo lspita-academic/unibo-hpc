@@ -14,7 +14,7 @@ char* check_arg(char* arg, char* arg_name) {
     return arg;
 }
 
-CliArgs parse_cli_args(int argc, char* argv[]) {
+CLIArgs parse_cli_args(int argc, char* argv[]) {
     safe_assert(argc == 4, "Usage: %s K input_file output_file\n", argv[0]);
 
     char* k_str = check_arg(argv[1], "K");
@@ -34,7 +34,7 @@ CliArgs parse_cli_args(int argc, char* argv[]) {
         "Invalid argument K: value must be a non-negative number\n"
     );
 
-    return (CliArgs){
+    return (CLIArgs){
         .k = k,
         .input_file_path = input_file_path,
         .output_file_path = output_file_path,
