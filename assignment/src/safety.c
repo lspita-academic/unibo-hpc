@@ -2,9 +2,11 @@
 
 #include "safety.h"
 
+#include <errno.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "mpi-utils.h"
 
@@ -30,7 +32,7 @@ void safe_assert(bool condition, char* message, ...) {
         vfprintf(stderr, message, ap);
         va_end(ap);
     } else {
-        fprintf(stderr, "Assertion failed");
+        fprintf(stderr, "Assertion failed\n");
     }
     safe_exit(EXIT_FAILURE);
 }
@@ -43,6 +45,13 @@ void* safe_malloc(size_t size) {
 
 FILE* safe_fopen(char* path, char* mode) {
     FILE* file = fopen(path, mode);
-    safe_assert(file != NULL, "Failed to open file %s in %s mode", path, mode);
+    safe_assert(
+        file != NULL, "Failed to open file %s in %s mode\n", path, mode
+    );
     return file;
+}
+
+void safe_fclose(FILE* file) {
+    int result = fclose(file);
+    safe_assert(result == 0, "Failed to close file: %s\n", strerror(errno));
 }
