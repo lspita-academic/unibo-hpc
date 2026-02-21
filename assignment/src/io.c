@@ -6,28 +6,28 @@
 #include "safety.h"
 #include "utils.h"
 
-#define BUFLEN 1024
+#define INPUT_FILE_BUFLEN 1024
 
 InputData read_input_file(FILE* input_file) {
-  char buffer[BUFLEN];
-  InputData result = {0};
+  char buffer[INPUT_FILE_BUFLEN];
+  InputData input_data = {0};
 
   /* Get the first line of the input file, and count how many
      numbers are there. This function is not very robust: if the
      first line is empty, the number of dimensions will be zero; if
      the first line has more than `BUFLEN` characters, the number of
      fields will be computed incorrectly. */
-  char* i_dont_care = fgets(buffer, BUFLEN, input_file);
+  char* i_dont_care = fgets(buffer, INPUT_FILE_BUFLEN, input_file);
   (void)i_dont_care; /* Avoid a compiler warning. */
-  result.dims = -1;
+  input_data.dims = -1;
   char *start, *end = buffer;
   do {
     start = end;
     strtof(start, &end);
-    result.dims++;
+    input_data.dims++;
   } while (end != start);
 
-  safe_assert(result.dims > 0, "First line of input file is empty");
+  safe_assert(input_data.dims > 0, "First line of input file is empty");
 
   /* Rewind the file and count how many data items are there. */
   rewind(input_file);
@@ -36,24 +36,25 @@ InputData read_input_file(FILE* input_file) {
   while (1 == fscanf(input_file, "%f", &dummy)) n_items++;
 
   safe_assert(
-      result.points % result.dims == 0,
+      input_data.points % input_data.dims == 0,
       "Lines of input file are not of regular length"
   );
 
-  result.points = n_items / result.dims;
+  input_data.points = n_items / input_data.dims;
 
-  result.data =
-      (float*)safe_malloc(result.points * result.dims * sizeof(*result.data));
+  input_data.data = (float*)safe_malloc(
+      input_data.points * input_data.dims * sizeof(*input_data.data)
+  );
 
   /* Rewind and read the actual data. */
   rewind(input_file);
-  for (size_t i = 0; i < result.points; i++) {
-    for (size_t j = 0; j < result.dims; j++) {
-      const size_t idx = flat_index(i, j, result.dims);
-      const int nread = fscanf(input_file, "%f", &result.data[idx]);
+  for (size_t i = 0; i < input_data.points; i++) {
+    for (size_t j = 0; j < input_data.dims; j++) {
+      const size_t idx = flat_index(i, j, input_data.dims);
+      const int nread = fscanf(input_file, "%f", &input_data.data[idx]);
       safe_assert(nread == 1, "Failed to read input file data");
     }
   }
 
-  return result;
+  return input_data;
 }
