@@ -6,9 +6,9 @@
 #include <stdlib.h>
 
 void mpi_safe_exit(int status) {
-    int flag;
-    MPI_Initialized(&flag);
-    if (flag) {
+    int initialized;
+    MPI_Initialized(&initialized);
+    if (initialized) {
         MPI_Abort(MPI_COMM_WORLD, status);
     } else {
         exit(status);

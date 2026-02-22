@@ -5,6 +5,9 @@
 
 #include <stdlib.h>
 
+/**
+ * Parse command line arguments.
+ */
 typedef struct Args {
     size_t n_clusters;
     char* input_file_path;

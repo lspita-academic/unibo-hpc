@@ -32,7 +32,7 @@ void update_dimensions(
     *out_dims = dims;
 }
 
-void read_points_collection_dimensions(
+void read_points_array_dimensions(
     FILE* stream, size_t* out_points, size_t* out_dims
 ) {
     char row_buffer[STREAM_ROW_BUFLEN];
@@ -85,9 +85,7 @@ void read_points_collection_dimensions(
     *out_dims = dims;
 }
 
-point_coord* read_points_collection_items(
-    FILE* stream, size_t points, size_t dims
-) {
+point_coord* read_points_array_items(FILE* stream, size_t points, size_t dims) {
     point_coord* items = safe_malloc(sizeof(*items) * points * dims);
 
     for (size_t i = 0; i < points * dims; i++) {
@@ -97,22 +95,20 @@ point_coord* read_points_collection_items(
     return items;
 }
 
-PointsCollection read_points_collection(FILE* input_file) {
+PointsArray read_points_array(FILE* stream) {
     size_t points = 0;
     size_t dims = 0;
 
-    read_points_collection_dimensions(input_file, &points, &dims);
-    rewind(input_file);
-    point_coord* items = read_points_collection_items(input_file, points, dims);
+    read_points_array_dimensions(stream, &points, &dims);
+    rewind(stream);
+    point_coord* items = read_points_array_items(stream, points, dims);
 
-    return (PointsCollection){
-        .size = points, .dimensions = dims, .data = items
-    };
+    return (PointsArray){.size = points, .dimensions = dims, .data = items};
 }
 
-void points_collection_free(PointsCollection* points) { free(points->data); }
+void points_array_free(PointsArray* points) { free(points->data); }
 
-void print_points_collection(FILE* stream, PointsCollection* points) {
+void print_points_array(FILE* stream, PointsArray* points) {
     for (size_t i = 0; i < points->size; i++) {
         for (size_t j = 0; j < points->dimensions; j++) {
             size_t idx = flat_index(i, j, points->dimensions);

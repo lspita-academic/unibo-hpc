@@ -20,19 +20,22 @@
 #define MAX_ITER 100
 #define TOL 1e-5
 
+/**
+ * Serial implementation of k-means clustering.
+ */
 int main(int argc, char* argv[]) {
     Args args = parse_cli_args(argc, argv);
 
     FILE* input_file = safe_fopen(args.input_file_path, "r");
 
-    PointsCollection points = read_points_collection(input_file);
+    PointsArray points = read_points_array(input_file);
     fclose(input_file);
 
     FILE* output_file = safe_fopen(args.output_file_path, "w");
-    print_points_collection(output_file, &points);
+    print_points_array(output_file, &points);
     fclose(output_file);
 
-    points_collection_free(&points);
+    points_array_free(&points);
 
     return EXIT_SUCCESS;
 }
