@@ -17,8 +17,16 @@ typedef struct PointsCollection {
     point_coord* data;
 } PointsCollection;
 
+typedef struct ClustersCollection {
+    PointsCollection* points;
+    PointsCollection centroids;
+    size_t size;
+    size_t* cluster_of;
+    size_t* counts;
+} ClustersCollection;
+
 PointsCollection read_points_collection(FILE* stream);
 void points_collection_free(PointsCollection* points);
 void print_points_collection(FILE* stream, PointsCollection* points);
 
-#endif  // IO_H
+#endif  // POINTS_H
