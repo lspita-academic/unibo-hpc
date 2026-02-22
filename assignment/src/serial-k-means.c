@@ -14,8 +14,8 @@
 #include <stdlib.h>
 
 #include "args.h"
+#include "files.h"
 #include "points.h"
-#include "safety.h"
 
 #define MAX_ITER 100
 #define TOL 1e-5

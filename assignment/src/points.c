@@ -8,7 +8,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "safety.h"
+#include "abort.h"
+#include "memory.h"
 #include "utils.h"
 
 /**

@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "safety.h"
+#include "abort.h"
 
 char* check_arg(char* arg, char* arg_name) {
     safe_assert(
