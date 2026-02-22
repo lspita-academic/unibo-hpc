@@ -12,7 +12,15 @@
 
 #pragma weak mpi_safe_exit
 
-void safe_exit(int status) {
+void safe_exit(int status, char* message, ...) {
+    if (message != NULL) {
+        // collect variable arguments to pass them to fprintf
+        // https://ftp.gnu.org/old-gnu/Manuals/glibc-2.2.5/html_node/Variable-Arguments-Output.html
+        va_list ap;
+        va_start(ap, message);  // message is the last fixed argument
+        vfprintf(stderr, message, ap);
+        va_end(ap);
+    }
     if (mpi_safe_exit != NULL) {
         mpi_safe_exit(status);
     } else {
@@ -24,23 +32,32 @@ void safe_assert(bool condition, char* message, ...) {
     if (condition) {
         return;
     }
-    if (message != NULL) {
-        // collect variable arguments to pass them to fprintf
-        // https://ftp.gnu.org/old-gnu/Manuals/glibc-2.2.5/html_node/Variable-Arguments-Output.html
-        va_list ap;
-        va_start(ap, message);  // message is the last fixed argument
-        vfprintf(stderr, message, ap);
-        va_end(ap);
-    } else {
-        fprintf(stderr, "Assertion failed\n");
-    }
-    safe_exit(EXIT_FAILURE);
+    safe_exit(EXIT_FAILURE, message == NULL ? "Assertion failed\n" : message);
 }
 
 void* safe_malloc(size_t size) {
     void* ptr = malloc(size);
-    safe_assert(ptr != NULL, NULL);
+    safe_assert(ptr != NULL, "Failed to allocate %lu bytes\n", size);
     return ptr;
+}
+
+void* safe_realloc(void* ptr, size_t size) {
+    void* new_ptr = realloc(ptr, size);
+    if (new_ptr == NULL) {
+        safe_free(ptr);
+        safe_exit(
+            EXIT_FAILURE,
+            "Failed to reallocate address %p to %lu bytes\n",
+            ptr,
+            size
+        );
+    }
+    return new_ptr;
+}
+
+void* safe_free(void* ptr) {
+    free(ptr);
+    return NULL;
 }
 
 FILE* safe_fopen(char* path, char* mode) {

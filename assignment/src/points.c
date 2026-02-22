@@ -2,6 +2,7 @@
 
 #include "points.h"
 
+#include <ctype.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -10,8 +11,52 @@
 #include "safety.h"
 #include "utils.h"
 
-#define STREAM_ROW_BUFLEN 1024
+/**
+ * Read a line of any length from a file stream.
+ */
+char* read_line(FILE* stream, char** out_buffer) {
+#define READLINE_START_CAPACITY 1024
+#define READLINE_CAPACITY_GROWTH_FACTOR 2
+    size_t total_len = 0;
+    size_t capacity = READLINE_START_CAPACITY;
+    char* row_buff = safe_malloc(capacity);
 
+    /*
+     * `fgets` could stop before then newline/EOF if the buffer is not large
+     * enough.
+     *
+     * From `fgets` man pages:
+     * fgets() reads in at most one less than size characters from stream
+     * and stores them into the buffer  pointed to  by s. Reading stops
+     * after an EOF or a newline. If a newline is read, it is stored into
+     * the buffer. A terminating null byte ('\0') is stored after the last
+     * character in the buffer.
+     */
+    while (fgets(row_buff + total_len, capacity - total_len, stream) != NULL) {
+        size_t n_read = strlen(row_buff + total_len);
+        total_len += n_read;
+
+        if (total_len > 0 && row_buff[total_len - 1] == '\n') {
+            break;
+        }
+
+        capacity *= READLINE_CAPACITY_GROWTH_FACTOR;
+        row_buff = safe_realloc(row_buff, capacity);
+    }
+
+    if (total_len == 0) {
+        row_buff = safe_free(row_buff);
+    }
+
+    if (out_buffer != NULL) {
+        *out_buffer = row_buff;
+    }
+    return row_buff;
+}
+
+/**
+ * Check and update the dimensions of the points array.
+ */
 void update_dimensions(
     size_t current_dims, size_t* out_points, size_t* out_dims
 ) {
@@ -35,19 +80,27 @@ void update_dimensions(
 void read_points_array_dimensions(
     FILE* stream, size_t* out_points, size_t* out_dims
 ) {
-    char row_buffer[STREAM_ROW_BUFLEN];
+    char* row_buffer;
     size_t points = 0;
     size_t dims = 0;
 
     size_t current_dims = 0;
-    while (fgets(row_buffer, STREAM_ROW_BUFLEN, stream) != NULL) {
+    while (read_line(stream, &row_buffer) != NULL) {
         size_t n_read_chars = strlen(row_buffer);
-        if (n_read_chars == 0) {
+
+        // trim out leading whitespace
+        size_t start_idx = 0;
+        for (; start_idx < n_read_chars && isspace(row_buffer[start_idx]);
+             start_idx++) {
+        }
+
+        if (start_idx == n_read_chars) {
+            // empty reading
             continue;
         }
 
         point_coord item;
-        size_t item_offset = 0;
+        size_t item_offset = start_idx;
         int item_chars = 0;
         while (sscanf(
                    row_buffer + item_offset,
@@ -59,21 +112,9 @@ void read_points_array_dimensions(
             item_offset += item_chars;
         }
 
-        /*
-         * `fgets` could stop before then newline/EOF if the buffer is not large
-         * enough.
-         *
-         * From `fgets` man pages:
-         * fgets() reads in at most one less than size characters from stream
-         * and stores them into the buffer  pointed to  by s. Reading stops
-         * after an EOF or a newline. If a newline is read, it is stored into
-         * the buffer. A terminating null byte ('\0') is stored after the last
-         * character in the buffer.
-         */
-        if (row_buffer[n_read_chars - 1] == '\n') {
-            update_dimensions(current_dims, &points, &dims);
-            current_dims = 0;
-        }
+        row_buffer = safe_free(row_buffer);
+        update_dimensions(current_dims, &points, &dims);
+        current_dims = 0;
     }
 
     // Handle last row finishing with EOF instead of newline
@@ -106,7 +147,9 @@ PointsArray read_points_array(FILE* stream) {
     return (PointsArray){.size = points, .dimensions = dims, .data = items};
 }
 
-void points_array_free(PointsArray* points) { free(points->data); }
+void points_array_free(PointsArray* points) {
+    points->data = safe_free(points->data);
+}
 
 void print_points_array(FILE* stream, PointsArray* points) {
     for (size_t i = 0; i < points->size; i++) {
