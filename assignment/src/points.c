@@ -14,12 +14,14 @@
 /**
  * Read a line of any length from a file stream.
  */
-char* read_line(FILE* stream, char** out_buffer) {
+size_t read_line(FILE* stream, char** out_buffer) {
 #define READLINE_START_CAPACITY 1024
 #define READLINE_CAPACITY_GROWTH_FACTOR 2
     size_t total_len = 0;
     size_t capacity = READLINE_START_CAPACITY;
-    char* row_buff = safe_malloc(capacity);
+    char* row_buff = out_buffer == NULL || *out_buffer == NULL
+                         ? safe_malloc(capacity)
+                         : *out_buffer;
 
     /*
      * `fgets` could stop before then newline/EOF if the buffer is not large
@@ -44,14 +46,11 @@ char* read_line(FILE* stream, char** out_buffer) {
         row_buff = safe_realloc(row_buff, capacity);
     }
 
-    if (total_len == 0) {
-        row_buff = safe_free(row_buff);
-    }
-
-    if (out_buffer != NULL) {
+    if (total_len > 0) {
         *out_buffer = row_buff;
     }
-    return row_buff;
+
+    return total_len;
 }
 
 /**
@@ -80,12 +79,12 @@ void update_dimensions(
 void read_points_array_dimensions(
     FILE* stream, size_t* out_points, size_t* out_dims
 ) {
-    char* row_buffer;
+    char* row_buffer = NULL;
     size_t points = 0;
     size_t dims = 0;
 
     size_t current_dims = 0;
-    while (read_line(stream, &row_buffer) != NULL) {
+    while (read_line(stream, &row_buffer) > 0) {
         size_t n_read_chars = strlen(row_buffer);
 
         // trim out leading whitespace
@@ -112,10 +111,10 @@ void read_points_array_dimensions(
             item_offset += item_chars;
         }
 
-        row_buffer = safe_free(row_buffer);
         update_dimensions(current_dims, &points, &dims);
         current_dims = 0;
     }
+    row_buffer = safe_free(row_buffer);
 
     // Handle last row finishing with EOF instead of newline
     if (current_dims > 0) {
