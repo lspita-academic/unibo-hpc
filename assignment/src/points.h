@@ -6,13 +6,13 @@
 #include <stddef.h>
 #include <stdio.h>
 
-#define POINT_COORD_READ_FORMAT "%lf"
-#define POINT_COORD_PRINT_FORMAT "%lf"
-
 /**
  * Point's single coordinate value.
  */
 typedef double point_coord;
+
+#define POINT_COORD_READ_FORMAT "%lf"
+#define POINT_COORD_PRINT_FORMAT "%lf"
 
 /**
  * Array of `size` points each of `dimensions` dimensions.
@@ -38,6 +38,16 @@ typedef struct ClustersArray {
 } ClustersArray;
 
 /**
+ * Create a `PointsArray`.
+ */
+PointsArray new_points_array(size_t size, size_t dimensions, point_coord* data);
+
+/**
+ * Free the memory allocated for the fields of a `PointsArray`.
+ */
+void free_points_array(PointsArray* points);
+
+/**
  * Read an array of points from a file stream.
  * Each line of the input must contain the coordinates of a point.
  * Each point must have the same number of dimensions.
@@ -46,13 +56,18 @@ typedef struct ClustersArray {
 PointsArray read_points_array(FILE* stream);
 
 /**
- * Free the memory allocated for the fields of a `PointsArray`.
- */
-void points_array_free(PointsArray* points);
-
-/**
  * Print a `PointsArray` to a file stream.
  */
 void print_points_array(FILE* stream, PointsArray* points);
+
+/**
+ * Create a `ClustersArray` from a `PointsArray`.
+ */
+ClustersArray new_clusters_array(PointsArray* points, size_t n_clusters);
+
+/**
+ * Free the memory allocated for the fields of a `ClustersArray`.
+ */
+void free_clusters_array(ClustersArray* clusters);
 
 #endif  // POINTS_H

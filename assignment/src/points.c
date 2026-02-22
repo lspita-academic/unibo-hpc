@@ -13,6 +13,13 @@
 #include "memory.h"
 #include "utils.h"
 
+PointsArray new_points_array(
+    size_t size, size_t dimensions, point_coord* data
+) {
+    data = data == NULL ? safe_malloc(sizeof(*data) * size * dimensions) : data;
+    return (PointsArray){.size = size, .dimensions = dimensions, .data = data};
+}
+
 /**
  * Check and update the dimensions of the points array.
  */
@@ -103,10 +110,10 @@ PointsArray read_points_array(FILE* stream) {
     rewind(stream);
     point_coord* items = read_points_array_items(stream, points, dims);
 
-    return (PointsArray){.size = points, .dimensions = dims, .data = items};
+    return new_points_array(points, dims, items);
 }
 
-void points_array_free(PointsArray* points) {
+void free_points_array(PointsArray* points) {
     points->data = safe_free(points->data);
 }
 
@@ -118,4 +125,23 @@ void print_points_array(FILE* stream, PointsArray* points) {
         }
         fputc('\n', stream);
     }
+}
+
+ClustersArray new_clusters_array(PointsArray* points, size_t n_clusters) {
+    PointsArray centroids =
+        new_points_array(n_clusters, points->dimensions, NULL);
+
+    size_t* cluster_of = safe_malloc(sizeof(*cluster_of) * points->size);
+    size_t* counts = safe_malloc(sizeof(*counts) * n_clusters);
+
+    return (ClustersArray){.points = points,
+                           .centroids = centroids,
+                           .cluster_of = cluster_of,
+                           .counts = counts};
+}
+
+void free_clusters_array(ClustersArray* clusters) {
+    free_points_array(&clusters->centroids);
+    clusters->cluster_of = safe_free(clusters->cluster_of);
+    clusters->counts = safe_free(clusters->counts);
 }

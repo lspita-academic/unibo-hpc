@@ -5,6 +5,7 @@
  * included, so autoformatters can be used.
  */
 
+#include "random.h"
 #if _XOPEN_SOURCE < 600
 #define _XOPEN_SOURCE 600
 #endif
@@ -24,8 +25,9 @@
  * Serial implementation of k-means clustering.
  */
 int main(int argc, char* argv[]) {
-    Args args = parse_cli_args(argc, argv);
+    init_random();
 
+    Args args = parse_cli_args(argc, argv);
     FILE* input_file = safe_fopen(args.input_file_path, "r");
 
     PointsArray points = read_points_array(input_file);
@@ -33,9 +35,9 @@ int main(int argc, char* argv[]) {
 
     FILE* output_file = safe_fopen(args.output_file_path, "w");
     print_points_array(output_file, &points);
-    fclose(output_file);
 
-    points_array_free(&points);
+    fclose(output_file);
+    free_points_array(&points);
 
     return EXIT_SUCCESS;
 }
