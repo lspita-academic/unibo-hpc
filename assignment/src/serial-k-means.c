@@ -13,7 +13,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "cli.h"
+#include "args.h"
 #include "points.h"
 #include "safety.h"
 
@@ -21,7 +21,7 @@
 #define TOL 1e-5
 
 int main(int argc, char* argv[]) {
-    CLIArgs args = parse_cli_args(argc, argv);
+    Args args = parse_cli_args(argc, argv);
 
     printf("K: %lu\n", args.k);
     printf("Input file: %s\n", args.input_file_path);

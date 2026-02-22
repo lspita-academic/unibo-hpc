@@ -3,12 +3,12 @@
 
 #include <stdlib.h>
 
-typedef struct CLIArgs {
+typedef struct Args {
     size_t k;
     char* input_file_path;
     char* output_file_path;
-} CLIArgs;
+} Args;
 
-CLIArgs parse_cli_args(int argc, char* argv[]);
+Args parse_cli_args(int argc, char* argv[]);
 
 #endif  // ARGS_H
