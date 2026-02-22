@@ -1,5 +1,7 @@
-#ifndef IO_H
-#define IO_H
+// Ludovico Maria Spitaleri 0001114169
+
+#ifndef POINTS_H
+#define POINTS_H
 
 #include <stddef.h>
 #include <stdio.h>
