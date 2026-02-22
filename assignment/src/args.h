@@ -6,7 +6,7 @@
 #include <stdlib.h>
 
 /**
- * Parse command line arguments.
+ * K-means clustering algorithm arguments.
  */
 typedef struct Args {
     size_t n_clusters;
@@ -14,6 +14,9 @@ typedef struct Args {
     char* output_file_path;
 } Args;
 
+/**
+ * Parse command line arguments.
+ */
 Args parse_cli_args(int argc, char* argv[]);
 
 #endif  // ARGS_H
