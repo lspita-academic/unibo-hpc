@@ -23,17 +23,10 @@
 int main(int argc, char* argv[]) {
     Args args = parse_cli_args(argc, argv);
 
-    printf("K: %lu\n", args.k);
-    printf("Input file: %s\n", args.input_file_path);
-    printf("Output file: %s\n\n", args.output_file_path);
-
     FILE* input_file = safe_fopen(args.input_file_path, "r");
 
     PointsCollection points = read_points_collection(input_file);
     fclose(input_file);
-
-    printf("Points: %lu\n", points.size);
-    printf("Dims: %lu\n\n", points.dimensions);
 
     FILE* output_file = safe_fopen(args.output_file_path, "w");
     print_points_collection(output_file, &points);

@@ -15,9 +15,11 @@ char* check_arg(char* arg, char* arg_name) {
 }
 
 Args parse_cli_args(int argc, char* argv[]) {
-    safe_assert(argc == 4, "Usage: %s K input_file output_file\n", argv[0]);
+    safe_assert(
+        argc == 4, "Usage: %s n_clusters input_file output_file\n", argv[0]
+    );
 
-    char* k_str = check_arg(argv[1], "K");
+    char* n_clusters_str = check_arg(argv[1], "n_clusters");
     char* input_file_path = check_arg(argv[2], "input_file");
     char* output_file_path = check_arg(argv[3], "output_file");
 
@@ -28,14 +30,14 @@ Args parse_cli_args(int argc, char* argv[]) {
      * entire string is valid.
      */
     char* endptr;
-    int64_t k = strtol(k_str, &endptr, 10);
+    int64_t n_clusters = strtol(n_clusters_str, &endptr, 10);
     safe_assert(
-        *endptr == '\0' && k >= 0,
-        "Invalid argument K: value must be a non-negative number\n"
+        *endptr == '\0' && n_clusters >= 0,
+        "Invalid argument n_clusters: value must be a non-negative number\n"
     );
 
     return (Args){
-        .k = k,
+        .n_clusters = n_clusters,
         .input_file_path = input_file_path,
         .output_file_path = output_file_path,
     };

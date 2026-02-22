@@ -22,14 +22,14 @@ INCLUDE_DIR?=include
 
 # demo
 DEMO_DIR?=demo
-DEMO_K?=5
-DEMO_POINTS?=20
-DEMO_CLUSTERS?=50
+DEMO_CLUSTERS?=5
+DEMO_INPUTGEN_POINTS?=20
+DEMO_INPUTGEN_CLUSTERS?=50
 DEMO_INPUT?=demo.in
 DEMO_OUTPUT?=demo.out
 
 # Arguments
-K?=$(DEMO_K)
+CLUSTERS?=$(DEMO_CLUSTERS)
 INPUT?=$(DEMO_INPUT)
 OUTPUT?=$(DEMO_OUTPUT)
 
@@ -126,7 +126,7 @@ compiledb:
 define make_run_target
 .PHONY: run-$(1)
 run-$(1): $(2) $(INPUT)
-	$(3) $(2) $(K) $(INPUT) $(OUTPUT)
+	$(3) $(2) $(CLUSTERS) $(INPUT) $(OUTPUT)
 endef
 
 $(eval $(call make_run_target,serial,$(SERIAL_BIN)))
@@ -143,7 +143,7 @@ endef
 define make_demo_target
 .PHONY: demo-$(1)
 demo-$(1): $(DEMO_INPUT) run-$(1)
-	MAKE_MOVIE=1 DEMO_DIR=$(DEMO_DIR) $(MAKE) run-$(1) K=$(DEMO_K) INPUT=$(DEMO_INPUT) OUTPUT=$(DEMO_OUTPUT)
+	MAKE_MOVIE=1 DEMO_DIR=$(DEMO_DIR) $(MAKE) run-$(1) CLUSTERS=$(DEMO_CLUSTERS) INPUT=$(DEMO_INPUT) OUTPUT=$(DEMO_OUTPUT)
 	$(SCRIPTS_DIR)/generate_frames.sh $(DEMO_DIR)
 	ffmpeg -pattern_type glob -stream_loop 5 -y -r 1 -i "$(DEMO_DIR)/img_*.png" -vcodec mpeg4 -r 1 $(DEMO_DIR)/demo_$(1).mp4
 endef
@@ -181,7 +181,7 @@ $(BUILD_DIR)/ $(BIN_DIR)/ $(DEMO_DIR)/ $(TESTS_DIR)/:
 
 # create demo files
 $(DEMO_INPUT): $(INPUTGEN_BIN) | $(DEMO_DIR)/
-	$(INPUTGEN_BIN) $(DEMO_POINTS) 2 $(DEMO_CLUSTERS) > $@
+	$(INPUTGEN_BIN) $(DEMO_INPUTGEN_POINTS) 2 $(DEMO_INPUTGEN_CLUSTERS) > $@
 
 # override compilers and flags
 OMP_TARGETS:=$(OMP_BIN) $(OMP_SRCS) $(OMP_OBJS) $(OMP_DEPS)
