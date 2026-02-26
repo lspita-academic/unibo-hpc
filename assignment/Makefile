@@ -20,6 +20,12 @@ BIN_DIR?=bin
 SCRIPTS_DIR?=scripts
 INCLUDE_DIR?=include
 
+# scripts
+GENFRAMES_SCRIPT:=$(SCRIPTS_DIR)/generate_frames.sh
+INPUTGEN_MAIN:=$(SCRIPTS_DIR)/inputgen.c
+INPUTGEN_FLAGS:=
+INPUTGEN_BIN:=$(BIN_DIR)/inputgen
+
 # demo
 DEMO_DIR?=demo
 DEMO_CLUSTERS?=5
@@ -28,14 +34,14 @@ DEMO_INPUTGEN_CLUSTERS?=50
 DEMO_INPUT?=demo.in
 DEMO_OUTPUT?=demo.out
 
-# Arguments
+# arguments
 CLUSTERS?=$(DEMO_CLUSTERS)
 INPUT?=$(DEMO_INPUT)
 OUTPUT?=$(DEMO_OUTPUT)
 
 # sources
 define make_src
-$(SRC_DIR)/$(1)
+$(wildcard $(SRC_DIR)/$(1))
 endef
 
 SERIAL_MAIN:=$(call make_src,serial-k-means.c)
@@ -43,13 +49,13 @@ OMP_MAIN:=$(call make_src,omp-k-means.c)
 MPI_MAIN:=$(call make_src,mpi-k-means.c)
 CUDA_MAIN:=$(call make_src,cuda-k-means.cu)
 
-MAIN_SRCS:=$(SERIAL_MAIN) $(OMP_MAIN) $(MPI_MAIN) $(CUDA_MAIN) $(INPUTGEN_MAIN)
-OMP_SRCS:=$(filter-out $(OMP_MAIN),$(wildcard $(SRC_DIR)/omp-*.c))
-MPI_SRCS:=$(filter-out $(MPI_MAIN),$(wildcard $(SRC_DIR)/mpi-*.c))
-CUDA_SRCS:=$(filter-out $(CUDA_MAIN),$(wildcard $(SRC_DIR)/cuda-*.c $(SRC_DIR)/cuda-*.cu))
-COMMON_SRCS:=$(filter-out $(MAIN_SRCS) $(OMP_SRCS) $(MPI_SRCS) $(CUDA_SRCS),$(wildcard $(SRC_DIR)/*.c $(SRC_DIR)/*.cu))
+MAIN_SRCS:=$(SERIAL_MAIN) $(OMP_MAIN) $(MPI_MAIN) $(CUDA_MAIN)
+OMP_SRCS:=$(call make_src,omp-*.c)
+MPI_SRCS:=$(call make_src,mpi-*.c)
+CUDA_SRCS:=$(wildcard $(call make_src,cuda-*.c) $(call make_src,cuda-*.cu))
+COMMON_SRCS:=$(filter-out $(MAIN_SRCS) $(OMP_SRCS) $(MPI_SRCS) $(CUDA_SRCS),$(call make_src,*.c))
 
-SRCS:=$(MAIN_SRCS) $(OMP_SRCS) $(MPI_SRCS) $(CUDA_SRCS) $(COMMON_SRCS)
+SRCS:=$(sort $(MAIN_SRCS) $(OMP_SRCS) $(MPI_SRCS) $(CUDA_SRCS) $(COMMON_SRCS))
 
 # object files
 define src_to_obj
@@ -67,7 +73,7 @@ MPI_OBJS:=$(call src_to_obj,$(MPI_SRCS))
 CUDA_OBJS:=$(call src_to_obj,$(CUDA_SRCS))
 COMMON_OBJS:=$(call src_to_obj,$(COMMON_SRCS))
 
-OBJS:=$(MAIN_OBJS) $(OMP_OBJS) $(MPI_OBJS) $(CUDA_OBJS) $(COMMON_OBJS)
+OBJS:=$(sort $(MAIN_OBJS) $(OMP_OBJS) $(MPI_OBJS) $(CUDA_OBJS) $(COMMON_OBJS))
 
 # dependencies
 define obj_to_deps
@@ -85,7 +91,7 @@ MPI_DEPS:=$(call obj_to_deps,$(MPI_OBJS))
 CUDA_DEPS:=$(call obj_to_deps,$(CUDA_OBJS))
 COMMON_DEPS:=$(call obj_to_deps,$(COMMON_OBJS))
 
-DEPS:=$(MAIN_DEPS) $(OMP_DEPS) $(MPI_DEPS) $(CUDA_DEPS) $(COMMON_DEPS)
+DEPS:=$(sort $(MAIN_DEPS) $(OMP_DEPS) $(MPI_DEPS) $(CUDA_DEPS) $(COMMON_DEPS))
 
 # binaries
 define obj_to_bin
@@ -97,36 +103,67 @@ OMP_BIN=$(call obj_to_bin,$(OMP_OBJ))
 MPI_BIN=$(call obj_to_bin,$(MPI_OBJ))
 CUDA_BIN=$(call obj_to_bin,$(CUDA_OBJ))
 
-INPUTGEN_BIN=$(BIN_DIR)/inputgen
-
-BINS:=$(SERIAL_BIN) $(OMP_BIN) $(MPI_BIN) $(CUDA_BIN) $(INPUTGEN_BIN)
+BINS:=$(SERIAL_BIN) $(OMP_BIN) $(MPI_BIN) $(CUDA_BIN)
 
 NODEPS_TARGETS=clean clean-build clean-compiledb clean-demo
 
 # targets
+
+# add only targets for which the main source exists
+BUILD_TARGETS:=
+RUN_TARGETS:=
+DEMO_TARGETS:=
+ifneq ($(wildcard $(SERIAL_MAIN)),)
+BUILD_TARGETS+=build-serial
+RUN_TARGETS+=run-serial
+DEMO_TARGETS+=demo-serial
+endif
+ifneq ($(wildcard $(OMP_MAIN)),)
+BUILD_TARGETS+=build-omp
+RUN_TARGETS+=run-omp
+DEMO_TARGETS+=demo-omp
+endif
+ifneq ($(wildcard $(MPI_MAIN)),)
+BUILD_TARGETS+=build-mpi
+RUN_TARGETS+=run-mpi
+DEMO_TARGETS+=demo-mpi
+endif
+ifneq ($(wildcard $(CUDA_MAIN)),)
+BUILD_TARGETS+=build-cuda
+RUN_TARGETS+=run-cuda
+DEMO_TARGETS+=demo-cuda
+endif
+
 .PHONY: all \
 	$(NODEPS_TARGETS) \
-	build build-serial build-omp build-mpi build-cuda build-inputgen \
+	build build-inputgen $(BUILD_TARGETS) \
+	$(RUN_TARGETS) \
+	$(DEMO_TARGETS) \
 	demo-input \
-	compiledb
+	compiledb \
+	sium
 
 all: build
 
-build: build-serial build-omp build-mpi build-inputgen
+build: build-inputgen $(BUILD_TARGETS)
 
-build-serial: $(SERIAL_BIN)
-build-omp: $(OMP_BIN)
-build-mpi: $(MPI_BIN)
-build-cuda: $(CUDA_BIN)
+define make_build_target
+ifneq ($(filter build-$(1), $(BUILD_TARGETS)),)
+build-$(1): $(2)
+endif
+endef
+
+$(eval $(call make_build_target,serial,$(SERIAL_BIN)))
+$(eval $(call make_build_target,omp,$(OMP_BIN)))
+$(eval $(call make_build_target,mpi,$(MPI_BIN)))
+$(eval $(call make_build_target,cuda,$(CUDA_BIN)))
 build-inputgen: $(INPUTGEN_BIN)
 
-compiledb:
-	$(BEAR) --append -- $(MAKE) build
-
 define make_run_target
-.PHONY: run-$(1)
+ifneq ($(filter run-$(1), $(RUN_TARGETS)),)
 run-$(1): $(2) $(INPUT)
 	$(3) $(2) $(CLUSTERS) $(INPUT) $(OUTPUT)
+endif
 endef
 
 $(eval $(call make_run_target,serial,$(SERIAL_BIN)))
@@ -134,18 +171,16 @@ $(eval $(call make_run_target,omp,$(OMP_BIN)))
 $(eval $(call make_run_target,mpi,$(MPI_BIN),$(MPIRUN) $(MPIRUN_FLAGS)))
 $(eval $(call make_run_target,cuda,$(CUDA_BIN)))
 
-define require_nonempty
-ifeq ($(strip $($(1))),)
-	$(error $1 must be set and non-empty)
-endif
-endef
+compiledb:
+	$(BEAR) --append -- $(MAKE) build
 
 define make_demo_target
-.PHONY: demo-$(1)
+ifneq ($(filter demo-$(1), $(DEMO_TARGETS)),)
 demo-$(1): $(DEMO_INPUT) run-$(1)
 	MAKE_MOVIE=1 DEMO_DIR=$(DEMO_DIR) $(MAKE) run-$(1) CLUSTERS=$(DEMO_CLUSTERS) INPUT=$(DEMO_INPUT) OUTPUT=$(DEMO_OUTPUT)
-	$(SCRIPTS_DIR)/generate_frames.sh $(DEMO_DIR)
+	$(GENFRAMES_SCRIPT) $(DEMO_DIR)
 	ffmpeg -pattern_type glob -stream_loop 5 -y -r 1 -i "$(DEMO_DIR)/img_*.png" -vcodec mpeg4 -r 1 $(DEMO_DIR)/demo_$(1).mp4
+endif
 endef
 
 $(eval $(call make_demo_target,serial))
@@ -156,9 +191,10 @@ $(eval $(call make_demo_target,cuda))
 demo-input: $(DEMO_INPUT)
 
 clean-build:
+	rm -f $(DEPS)
 	rm -f $(OBJS)
 	rm -f $(BINS)
-	rm -f $(DEPS)
+	rm -f $(INPUTGEN_BIN)
 
 clean-compiledb:
 	rm -f compile_commands.json
@@ -195,28 +231,31 @@ $(MPI_TARGETS): CC:=$(MPICC)
 $(MPI_TARGETS): EXTRA_OBJS+=$(MPI_OBJS)
 
 $(CUDA_TARGETS): CC:=$(NVCC)
+# C std not supported by nvcc
 $(CUDA_TARGETS): CFLAGS:=$(filter-out -std=%,$(CFLAGS))
-$(CUDA_TARGETS): CFLAGS+=$(CUDA_FLAGS)
-$(MPI_TARGETS): EXTRA_OBJS+=$(CUDA_OBJS)
+# -Wpedantic creates warning with autogenerated code in preprocessing of nvcc
+$(CUDA_TARGETS): CFLAGS:=$(filter-out -Wpedantic,$(CFLAGS))
+$(CUDA_TARGETS): CFLAGS:=$(foreach flag,$(CFLAGS),-Xcompiler $(flag))
+$(CUDA_TARGETS): CFLAGS+=$(NVCC_FLAGS)
+
+# compile inputgen
+$(INPUTGEN_BIN): $(INPUTGEN_MAIN) | $(BIN_DIR)/
+	$(CC) $(CFLAGS) $^ -o $@
 
 # compile dependencies
 # https://gcc.gnu.org/onlinedocs/gcc-4.3.2/cpp/Invocation.html
-$(BUILD_DIR)/%.d: $(SRC_DIR)/%.c | $(BUILD_DIR)/
-	$(CC) $(CFLAGS) -MM -MQ '$(call src_to_obj,$<)' -c $< -MF $@
+.SECONDEXPANSION:
+$(BUILD_DIR)/%.d: $$(wildcard $(SRC_DIR)/%.c $(SRC_DIR)/%.cu) | $(BUILD_DIR)/
+	$(CC) $(CFLAGS) -MM -MT $(call src_to_obj,$<) $< -MF $@
 
 ifeq ($(filter $(MAKECMDGOALS),$(NODEPS_TARGETS)),)
 -include $(DEPS)
 endif
 
 # compile objects
-$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c $(BUILD_DIR)/%.d | $(BUILD_DIR)/
+$(BUILD_DIR)/%.o: $$(wildcard $(SRC_DIR)/%.c $(SRC_DIR)/%.cu) $(BUILD_DIR)/%.d | $(BUILD_DIR)/
 	$(CC) $(CFLAGS) -c $< -o $@
 
 # compile binaries
-.SECONDEXPANSION: # allow to add extra objects
 $(BIN_DIR)/%: $(BUILD_DIR)/%.o $$(COMMON_OBJS) $$(EXTRA_OBJS) | $(BIN_DIR)/
 	$(CC) $(CFLAGS) $^ -o $@
-
-# compile inputgen
-$(INPUTGEN_BIN): $(SCRIPTS_DIR)/inputgen.c | $(BIN_DIR)/
-	$(CC) $(CFLAGS) $< -o $@
