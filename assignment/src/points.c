@@ -9,9 +9,9 @@
 #include <string.h>
 
 #include "abort.h"
+#include "array.h"
 #include "files.h"
 #include "memory.h"
-#include "utils.h"
 
 PointsArray new_points_array(
     size_t size, size_t dimensions, point_coord* data
