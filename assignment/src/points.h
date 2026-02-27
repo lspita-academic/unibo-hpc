@@ -48,4 +48,9 @@ PointsCollection read_points_collection(FILE* stream);
  */
 void print_points_collection(FILE* stream, PointsCollection* points);
 
+/**
+ * Copy a point from `src` to `dest`.
+ */
+void copy_point(point_coord* dest, point_coord* src, size_t dimensions);
+
 #endif  // POINTS_H

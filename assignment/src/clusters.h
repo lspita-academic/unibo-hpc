@@ -28,7 +28,17 @@ ClustersCollection new_clusters_collection(
 
 /**
  * Free the memory allocated for the fields of a `ClustersCollection`.
+ * Associated point collection will not be freed.
  */
 void free_clusters_collection(ClustersCollection* clusters);
+
+/**
+ * Initialize the centroids of a `ClustersCollection`.
+ * The centroids are initialized randomly using Knuths' algorithm (as reported
+ * in J. Bentley, "Programming Pearls", 2nd ed., Addison-Wesley, 2000, p. 126).
+ *
+ * DO NOT PARALLELIZE THIS FUNCTION: `rand` is not thread-safe.
+ */
+void init_centroids(ClustersCollection* clusters);
 
 #endif  // CLUSTERS_H

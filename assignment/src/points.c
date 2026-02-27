@@ -127,3 +127,7 @@ void print_points_collection(FILE* stream, PointsCollection* points) {
         fputc('\n', stream);
     }
 }
+
+void copy_point(point_coord* dest, point_coord* src, size_t dimensions) {
+    memcpy(dest, src, sizeof(*dest) * dimensions);
+}
