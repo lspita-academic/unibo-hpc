@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "mpi-utils.h"
+#include "mpi-abort.h"
 
 #pragma weak mpi_safe_exit
 
@@ -20,6 +20,7 @@ void safe_exit(int status, char* message, ...) {
         va_end(ap);
     }
     if (mpi_safe_exit != NULL) {
+        // MPI library is linked
         mpi_safe_exit(status);
     } else {
         exit(status);

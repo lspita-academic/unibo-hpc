@@ -1,6 +1,6 @@
 // Ludovico Maria Spitaleri 0001114169
 
-#include "mpi-utils.h"
+#include "mpi-abort.h"
 
 #include <mpi.h>
 #include <stdlib.h>
