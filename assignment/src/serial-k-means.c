@@ -36,6 +36,12 @@ int main(int argc, char* argv[]) {
         new_clusters_collection(&points, args.n_clusters);
     init_centroids(&clusters);
 
+    printf("Input file....... %s\n", args.input_file_path);
+    printf("Output file...... %s\n", args.output_file_path);
+    printf("Data points (N).. %lu\n", points.size);
+    printf("Dimensions (D)... %lu\n", points.dimensions);
+    printf("Clusters (K)..... %lu\n\n", clusters.size);
+
     FILE* output_file = safe_fopen(args.output_file_path, "w");
     print_points_collection(output_file, &points);
     fclose(output_file);
