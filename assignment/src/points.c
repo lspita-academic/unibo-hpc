@@ -13,16 +13,15 @@
 #include "files.h"
 #include "memory.h"
 
-PointsArray new_points_array(
+PointsCollection new_points_collection(
     size_t size, size_t dimensions, point_coord* data
 ) {
     data = data == NULL ? safe_malloc(sizeof(*data) * size * dimensions) : data;
-    return (PointsArray){.size = size, .dimensions = dimensions, .data = data};
+    return (PointsCollection){
+        .size = size, .dimensions = dimensions, .data = data
+    };
 }
 
-/**
- * Check and update the dimensions of the points array.
- */
 void update_dimensions(
     size_t current_dims, size_t* out_points, size_t* out_dims
 ) {
@@ -43,7 +42,7 @@ void update_dimensions(
     *out_dims = dims;
 }
 
-void read_points_array_dimensions(
+void read_points_collection_dimensions(
     FILE* stream, size_t* out_points, size_t* out_dims
 ) {
     char* row_buffer = NULL;
@@ -92,7 +91,9 @@ void read_points_array_dimensions(
     *out_dims = dims;
 }
 
-point_coord* read_points_array_items(FILE* stream, size_t points, size_t dims) {
+point_coord* read_points_collection_items(
+    FILE* stream, size_t points, size_t dims
+) {
     point_coord* items = safe_malloc(sizeof(*items) * points * dims);
 
     for (size_t i = 0; i < points * dims; i++) {
@@ -102,22 +103,22 @@ point_coord* read_points_array_items(FILE* stream, size_t points, size_t dims) {
     return items;
 }
 
-PointsArray read_points_array(FILE* stream) {
+PointsCollection read_points_collection(FILE* stream) {
     size_t points = 0;
     size_t dims = 0;
 
-    read_points_array_dimensions(stream, &points, &dims);
+    read_points_collection_dimensions(stream, &points, &dims);
     rewind(stream);
-    point_coord* items = read_points_array_items(stream, points, dims);
+    point_coord* items = read_points_collection_items(stream, points, dims);
 
-    return new_points_array(points, dims, items);
+    return new_points_collection(points, dims, items);
 }
 
-void free_points_array(PointsArray* points) {
+void free_points_collection(PointsCollection* points) {
     points->data = safe_free(points->data);
 }
 
-void print_points_array(FILE* stream, PointsArray* points) {
+void print_points_collection(FILE* stream, PointsCollection* points) {
     for (size_t i = 0; i < points->size; i++) {
         for (size_t j = 0; j < points->dimensions; j++) {
             size_t idx = flat_index(i, j, points->dimensions);

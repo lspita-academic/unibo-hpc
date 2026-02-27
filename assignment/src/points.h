@@ -15,35 +15,37 @@ typedef double point_coord;
 #define POINT_COORD_PRINT_FORMAT "%lf"
 
 /**
- * Array of `size` points each of `dimensions` dimensions.
+ * Collection of `size` points each of `dimensions` dimensions.
  */
-typedef struct PointsArray {
+typedef struct PointsCollection {
     size_t size;
     size_t dimensions;
     point_coord* data;
-} PointsArray;
+} PointsCollection;
 
 /**
- * Create a `PointsArray`.
+ * Create a `PointsCollection`.
  */
-PointsArray new_points_array(size_t size, size_t dimensions, point_coord* data);
+PointsCollection new_points_collection(
+    size_t size, size_t dimensions, point_coord* data
+);
 
 /**
- * Free the memory allocated for the fields of a `PointsArray`.
+ * Free the memory allocated for the fields of a `PointsCollection`.
  */
-void free_points_array(PointsArray* points);
+void free_points_collection(PointsCollection* points);
 
 /**
- * Read an array of points from a file stream.
+ * Read a collection of points from a file stream.
  * Each line of the input must contain the coordinates of a point.
  * Each point must have the same number of dimensions.
  * Empty lines are ignored.
  */
-PointsArray read_points_array(FILE* stream);
+PointsCollection read_points_collection(FILE* stream);
 
 /**
- * Print a `PointsArray` to a file stream.
+ * Print a `PointsCollection` to a file stream.
  */
-void print_points_array(FILE* stream, PointsArray* points);
+void print_points_collection(FILE* stream, PointsCollection* points);
 
 #endif  // POINTS_H

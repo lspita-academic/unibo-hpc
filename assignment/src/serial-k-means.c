@@ -30,14 +30,14 @@ int main(int argc, char* argv[]) {
     Args args = parse_cli_args(argc, argv);
     FILE* input_file = safe_fopen(args.input_file_path, "r");
 
-    PointsArray points = read_points_array(input_file);
+    PointsCollection points = read_points_collection(input_file);
     fclose(input_file);
 
     FILE* output_file = safe_fopen(args.output_file_path, "w");
-    print_points_array(output_file, &points);
+    print_points_collection(output_file, &points);
 
     fclose(output_file);
-    free_points_array(&points);
+    free_points_collection(&points);
 
     return EXIT_SUCCESS;
 }
