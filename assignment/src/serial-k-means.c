@@ -13,6 +13,7 @@
 #include <stdlib.h>
 
 #include "args.h"
+#include "classification.h"
 #include "clusters.h"
 #include "files.h"
 #include "points.h"
@@ -42,8 +43,29 @@ int main(int argc, char* argv[]) {
     printf("Dimensions (D)... %lu\n", points.dimensions);
     printf("Clusters (K)..... %lu\n\n", clusters.size);
 
+    point_distance maxsqshift;
+    size_t iter = 0;
+    double tstart = hpc_gettime();
+    do {
+        classify_points(&clusters);
+
+        // MAKE_MOVIE
+
+        maxsqshift = update_centroids(&clusters);
+        printf(
+            "Iteration %3lu, maxsqshift = %" POINT_DISTANCE_FORMAT "\n",
+            iter,
+            maxsqshift
+        );
+        iter++;
+    } while ((maxsqshift > TOL * TOL) && (iter <= MAX_ITER));
+    const double elapsed = hpc_gettime() - tstart;
+
+    printf("\nMain loop completed\n");
+    printf("Elapsed seconds %.3f\n\n", elapsed);
+
     FILE* output_file = safe_fopen(args.output_file_path, "w");
-    print_points_collection(output_file, &points);
+    print_clusters_collection(output_file, &clusters);
     fclose(output_file);
 
     free_clusters_collection(&clusters);

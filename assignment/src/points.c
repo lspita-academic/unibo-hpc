@@ -69,7 +69,7 @@ void read_points_collection_dimensions(
         int item_chars = 0;
         while (sscanf(
                    row_buffer + item_offset,
-                   POINT_COORD_READ_FORMAT "%n",
+                   "%" POINT_COORD_FORMAT "%n",
                    &item,
                    &item_chars
                ) > 0) {
@@ -97,7 +97,7 @@ point_coord* read_points_collection_items(
     point_coord* items = safe_malloc(sizeof(*items) * points * dims);
 
     for (size_t i = 0; i < points * dims; i++) {
-        int nread = fscanf(stream, POINT_COORD_READ_FORMAT, &items[i]);
+        int nread = fscanf(stream, "%" POINT_COORD_FORMAT, &items[i]);
         safe_assert(nread == 1, "Failed to read input file item\n");
     }
     return items;
@@ -122,12 +122,38 @@ void print_points_collection(FILE* stream, PointsCollection* points) {
     for (size_t i = 0; i < points->size; i++) {
         for (size_t j = 0; j < points->dimensions; j++) {
             size_t idx = flat_index(i, j, points->dimensions);
-            fprintf(stream, POINT_COORD_PRINT_FORMAT " ", points->data[idx]);
+            fprintf(stream, "%" POINT_COORD_FORMAT " ", points->data[idx]);
         }
         fputc('\n', stream);
     }
 }
 
-void copy_point(point_coord* dest, point_coord* src, size_t dimensions) {
+void points_copy(point_coord* dest, point_coord* src, size_t dimensions) {
     memcpy(dest, src, sizeof(*dest) * dimensions);
+}
+
+point_distance points_distance(
+    point_coord* p1, point_coord* p2, size_t dimensions
+) {
+    point_distance distance = 0.0;
+    for (size_t i = 0; i < dimensions; i++) {
+        distance += (p1[i] - p2[i]) * (p1[i] - p2[i]);
+    }
+    return distance;
+}
+
+void zero_point(point_coord* p, size_t dimensions) {
+    memset(p, 0, sizeof(*p) * dimensions);
+}
+
+void points_add(point_coord* dest, point_coord* src, size_t dimensions) {
+    for (size_t i = 0; i < dimensions; i++) {
+        dest[i] += src[i];
+    }
+}
+
+void point_scalar_mul(point_coord* p, point_coord s, size_t dimensions) {
+    for (size_t i = 0; i < dimensions; i++) {
+        p[i] *= s;
+    }
 }

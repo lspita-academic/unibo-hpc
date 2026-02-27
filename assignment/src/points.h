@@ -3,16 +3,24 @@
 #ifndef POINTS_H
 #define POINTS_H
 
+#include <float.h>
 #include <stddef.h>
 #include <stdio.h>
 
 /**
  * Point's single coordinate value.
  */
-typedef double point_coord;
+typedef float point_coord;
 
-#define POINT_COORD_READ_FORMAT "%lf"
-#define POINT_COORD_PRINT_FORMAT "%lf"
+/**
+ * Point's coordinates distance value.
+ */
+typedef point_coord point_distance;
+
+#define POINT_COORD_FORMAT "f"
+#define POINT_COORD_MAX FLT_MAX
+#define POINT_DISTANCE_FORMAT POINT_COORD_FORMAT
+#define POINT_DISTANCE_MAX POINT_COORD_MAX
 
 /**
  * Collection of `size` points each of `dimensions` dimensions.
@@ -51,6 +59,28 @@ void print_points_collection(FILE* stream, PointsCollection* points);
 /**
  * Copy a point from `src` to `dest`.
  */
-void copy_point(point_coord* dest, point_coord* src, size_t dimensions);
+void points_copy(point_coord* dest, point_coord* src, size_t dimensions);
+
+/**
+ * Compute the euclidean squared distance between two points.
+ */
+point_distance points_distance(
+    point_coord* p1, point_coord* p2, size_t dimensions
+);
+
+/**
+ * Set all coordinates of a point to zero.
+ */
+void zero_point(point_coord* p, size_t dimensions);
+
+/**
+ * Sum the coordinates of point `src` to point `dest`.
+ */
+void points_add(point_coord* dest, point_coord* src, size_t dimensions);
+
+/**
+ * Multiply the coordinates of a point with a scalar.
+ */
+void point_scalar_mul(point_coord* p, point_coord s, size_t dimensions);
 
 #endif  // POINTS_H
