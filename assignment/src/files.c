@@ -12,7 +12,11 @@
 FILE* safe_fopen(char* path, char* mode) {
     FILE* file = fopen(path, mode);
     safe_assert(
-        file != NULL, "Failed to open file %s in %s mode\n", path, mode
+        file != NULL,
+        "Failed to open file %s in %s mode: %s\n",
+        path,
+        mode,
+        strerror(errno)
     );
     return file;
 }
