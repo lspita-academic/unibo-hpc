@@ -37,7 +37,7 @@ void serial_classify_points(ClustersCollection* clusters) {
     }
 }
 
-point_distance update_centroids(ClustersCollection* clusters) {
+point_distance serial_update_centroids(ClustersCollection* clusters) {
     size_t dims = clusters->points->dimensions;
 
     PointsCollection new_centroids =
@@ -92,5 +92,5 @@ point_distance update_centroids(ClustersCollection* clusters) {
 }
 
 int main(int argc, char* argv[]) {
-    return k_means(argc, argv, serial_classify_points, update_centroids);
+    return k_means(argc, argv, serial_classify_points, serial_update_centroids);
 }
