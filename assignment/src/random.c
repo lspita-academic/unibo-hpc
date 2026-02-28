@@ -10,8 +10,10 @@
 bool __RANDOM_INITIALIZED = false;
 
 void init_random(void) {
-    srand(RAND_SEED);
-    __RANDOM_INITIALIZED = true;
+    if (!__RANDOM_INITIALIZED) {
+        srand(RAND_SEED);
+        __RANDOM_INITIALIZED = true;
+    }
 }
 
 int rand_int(void) {

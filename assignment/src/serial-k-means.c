@@ -1,75 +1,96 @@
 // Ludovico Maria Spitaleri 0001114169
 
-/*
- * defining _XOPEN_SOURCE first allows hpc.h to not be the first header
- * included, so autoformatters can be used.
- */
-#if _XOPEN_SOURCE < 600
-#define _XOPEN_SOURCE 600
-#endif
+#include <stddef.h>
 
-#include <hpc.h>
-#include <stdio.h>
-#include <stdlib.h>
-
-#include "args.h"
-#include "classification.h"
-#include "clusters.h"
-#include "files.h"
+#include "array.h"
+#include "k-means.h"
 #include "points.h"
-#include "random.h"
 
-#define MAX_ITER 100
-#define TOL 1e-5
+void serial_classify_points(ClustersCollection* clusters) {
+    size_t dims = clusters->points->dimensions;
 
-/**
- * Serial implementation of k-means clustering.
- */
-int main(int argc, char* argv[]) {
-    init_random();
-    Args args = parse_cli_args(argc, argv);
+    for (size_t j = 0; j < clusters->size; j++) {
+        clusters->counts[j] = 0;
+    }
 
-    FILE* input_file = safe_fopen(args.input_file_path, "r");
-    PointsCollection points = read_points_collection(input_file);
-    fclose(input_file);
+    for (size_t i = 0; i < clusters->points->size; i++) {
+        // index and squared distance of the nearest centroid
+        size_t nearest = clusters->size;
+        point_coord mindist = POINT_COORD_MAX;
+        for (size_t j = 0; j < clusters->size; j++) {
+            size_t idx = flat_index(i, 0, dims);
+            size_t jdx = flat_index(j, 0, dims);
 
-    ClustersCollection clusters =
-        new_clusters_collection(&points, args.n_clusters);
-    init_centroids(&clusters);
+            point_coord dist = points_distance(
+                &clusters->points->data[idx],
+                &clusters->centroids.data[jdx],
+                dims
+            );
+            if (dist < mindist) {
+                mindist = dist;
+                nearest = j;
+            }
+        }
+        // assign the point to the nearest centroid, and update the cluster size
+        clusters->cluster_of[i] = nearest;
+        clusters->counts[nearest]++;
+    }
+}
 
-    printf("Input file....... %s\n", args.input_file_path);
-    printf("Output file...... %s\n", args.output_file_path);
-    printf("Data points (N).. %lu\n", points.size);
-    printf("Dimensions (D)... %lu\n", points.dimensions);
-    printf("Clusters (K)..... %lu\n\n", clusters.size);
+point_distance update_centroids(ClustersCollection* clusters) {
+    size_t dims = clusters->points->dimensions;
 
-    point_distance maxsqshift;
-    size_t iter = 0;
-    double tstart = hpc_gettime();
-    do {
-        classify_points(&clusters);
+    PointsCollection new_centroids =
+        new_points_collection(clusters->size, dims, NULL);
 
-        // MAKE_MOVIE
+    // initialize centroids to zero
+    for (size_t i = 0; i < clusters->size; i++) {
+        size_t idx = flat_index(i, 0, dims);
+        zero_point(&new_centroids.data[idx], dims);
+    }
 
-        maxsqshift = update_centroids(&clusters);
-        printf(
-            "Iteration %3lu, maxsqshift = %" POINT_DISTANCE_FORMAT "\n",
-            iter,
-            maxsqshift
+    // sum all points in their respective cluster centroid
+    for (size_t i = 0; i < clusters->points->size; i++) {
+        size_t idx = flat_index(i, 0, dims);
+        size_t cluster_idx = flat_index(clusters->cluster_of[i], 0, dims);
+
+        points_add(
+            &new_centroids.data[cluster_idx], &clusters->points->data[idx], dims
         );
-        iter++;
-    } while ((maxsqshift > TOL * TOL) && (iter <= MAX_ITER));
-    const double elapsed = hpc_gettime() - tstart;
+    }
 
-    printf("\nMain loop completed\n");
-    printf("Elapsed seconds %.3f\n\n", elapsed);
+    point_distance maxsqshift = 0.0f;
+    for (size_t i = 0; i < clusters->size; i++) {
+        size_t idx = flat_index(i, 0, dims);
+        if (clusters->counts[i] == 0) {
+            // cluster is empty, we simply copy the old centroid to the new one
+            points_copy(
+                &new_centroids.data[idx], &clusters->centroids.data[idx], dims
+            );
+        } else {
+            // average the points in the cluster
+            point_scalar_mul(
+                &new_centroids.data[idx], 1.0f / clusters->counts[i], dims
+            );
+        }
 
-    FILE* output_file = safe_fopen(args.output_file_path, "w");
-    print_clusters_collection(output_file, &clusters);
-    fclose(output_file);
+        // calculate the shift
+        const point_distance sqshift = points_distance(
+            &clusters->centroids.data[idx], &new_centroids.data[idx], dims
+        );
+        if (sqshift > maxsqshift) {
+            maxsqshift = sqshift;
+        }
 
-    free_clusters_collection(&clusters);
-    free_points_collection(&points);
+        points_copy(
+            &clusters->centroids.data[idx], &new_centroids.data[idx], dims
+        );
+    }
 
-    return EXIT_SUCCESS;
+    free_points_collection(&new_centroids);
+    return maxsqshift;
+}
+
+int main(int argc, char* argv[]) {
+    return k_means(argc, argv, serial_classify_points, update_centroids);
 }

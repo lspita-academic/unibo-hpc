@@ -50,12 +50,13 @@ MPI_MAIN:=$(call make_src,mpi-k-means.c)
 CUDA_MAIN:=$(call make_src,cuda-k-means.cu)
 
 MAIN_SRCS:=$(SERIAL_MAIN) $(OMP_MAIN) $(MPI_MAIN) $(CUDA_MAIN)
+SERIAL_SRCS:=$(call make_src,serial-*.c)
 OMP_SRCS:=$(call make_src,omp-*.c)
 MPI_SRCS:=$(call make_src,mpi-*.c)
 CUDA_SRCS:=$(wildcard $(call make_src,cuda-*.c) $(call make_src,cuda-*.cu))
-COMMON_SRCS:=$(filter-out $(MAIN_SRCS) $(OMP_SRCS) $(MPI_SRCS) $(CUDA_SRCS),$(call make_src,*.c))
+COMMON_SRCS:=$(filter-out $(MAIN_SRCS) $(SERIAL_SRCS) $(OMP_SRCS) $(MPI_SRCS) $(CUDA_SRCS),$(call make_src,*.c))
 
-SRCS:=$(sort $(MAIN_SRCS) $(OMP_SRCS) $(MPI_SRCS) $(CUDA_SRCS) $(COMMON_SRCS))
+SRCS:=$(sort $(MAIN_SRCS) $(SERIAL_SRCS) $(OMP_SRCS) $(MPI_SRCS) $(CUDA_SRCS) $(COMMON_SRCS))
 
 # object files
 define src_to_obj
@@ -68,12 +69,13 @@ MPI_OBJ:=$(call src_to_obj,$(MPI_MAIN))
 CUDA_OBJ:=$(call src_to_obj,$(CUDA_MAIN))
 
 MAIN_OBJS:=$(call src_to_obj,$(MAIN_SRCS))
+SERIAL_OBJS:=$(call src_to_obj,$(SERIAL_SRCS))
 OMP_OBJS:=$(call src_to_obj,$(OMP_SRCS))
 MPI_OBJS:=$(call src_to_obj,$(MPI_SRCS))
 CUDA_OBJS:=$(call src_to_obj,$(CUDA_SRCS))
 COMMON_OBJS:=$(call src_to_obj,$(COMMON_SRCS))
 
-OBJS:=$(sort $(MAIN_OBJS) $(OMP_OBJS) $(MPI_OBJS) $(CUDA_OBJS) $(COMMON_OBJS))
+OBJS:=$(sort $(MAIN_OBJS) $(SERIAL_OBJS) $(OMP_OBJS) $(MPI_OBJS) $(CUDA_OBJS) $(COMMON_OBJS))
 
 # dependencies
 define obj_to_deps
@@ -86,12 +88,13 @@ MPI_DEP:=$(call obj_to_deps,$(MPI_OBJ))
 CUDA_DEP:=$(call obj_to_deps,$(CUDA_OBJ))
 
 MAIN_DEPS:=$(call obj_to_deps,$(MAIN_OBJS))
+SERIAL_DEPS:=$(call obj_to_deps,$(SERIAL_OBJS))
 OMP_DEPS:=$(call obj_to_deps,$(OMP_OBJS))
 MPI_DEPS:=$(call obj_to_deps,$(MPI_OBJS))
 CUDA_DEPS:=$(call obj_to_deps,$(CUDA_OBJS))
 COMMON_DEPS:=$(call obj_to_deps,$(COMMON_OBJS))
 
-DEPS:=$(sort $(MAIN_DEPS) $(OMP_DEPS) $(MPI_DEPS) $(CUDA_DEPS) $(COMMON_DEPS))
+DEPS:=$(sort $(MAIN_DEPS) $(SERIAL_DEPS) $(OMP_DEPS) $(MPI_DEPS) $(CUDA_DEPS) $(COMMON_DEPS))
 
 # binaries
 define obj_to_bin
@@ -220,9 +223,12 @@ $(DEMO_INPUT): $(INPUTGEN_BIN) | $(DEMO_DIR)/
 	$(INPUTGEN_BIN) $(DEMO_INPUTGEN_POINTS) 2 $(DEMO_INPUTGEN_CLUSTERS) > $@
 
 # override compilers and flags
+SERIAL_TARGETS:=$(SERIAL_BIN) $(SERIAL_SRCS) $(SERIAL_OBJS) $(SERIAL_DEPS)
 OMP_TARGETS:=$(OMP_BIN) $(OMP_SRCS) $(OMP_OBJS) $(OMP_DEPS)
 MPI_TARGETS:=$(MPI_BIN) $(MPI_SRCS) $(MPI_OBJS) $(MPI_DEPS)
 CUDA_TARGETS:=$(CUDA_BIN) $(CUDA_SRCS) $(CUDA_OBJS) $(CUDA_DEPS)
+
+$(SERIAL_TARGETS): EXTRA_OBJS+=$(SERIAL_OBJS)
 
 $(OMP_TARGETS): CFLAGS+=$(OMP_FLAGS)
 $(OMP_TARGETS): EXTRA_OBJS+=$(OMP_OBJS)
