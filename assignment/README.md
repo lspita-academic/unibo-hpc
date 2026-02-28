@@ -127,7 +127,7 @@ To allow weak linking, pragma directives are used instead of gcc attributes to a
 
 See: [GCC weak linking pragma directive](https://gcc.gnu.org/onlinedocs/gcc/Weak-Pragmas.html).
 
-An example can be found in [safety.c](src/safety.c).
+An example can be found in [abort.c](src/abort.c).
 
 ### Formatting style
 
