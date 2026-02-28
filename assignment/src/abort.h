@@ -6,6 +6,13 @@
 #include <stdbool.h>
 
 /**
+ * Function to exit a program with the given status code.
+ * Create a global function pointer of this type named `safe_exit_fn` to
+ * override the default exit function used by `safe_exit`.
+ */
+typedef void (*exit_fn)(int);
+
+/**
  * Safely exit with the given status code and message.
  */
 void safe_exit(int status, char* message, ...);

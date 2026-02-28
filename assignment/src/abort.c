@@ -6,9 +6,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "mpi-abort.h"
-
-#pragma weak mpi_safe_exit
+/**
+ * Symbol to override the default exit function used by safe_exit.
+ */
+extern exit_fn safe_exit_fn;
+#pragma weak safe_exit_fn
 
 void safe_exit(int status, char* message, ...) {
     if (message != NULL) {
@@ -19,9 +21,9 @@ void safe_exit(int status, char* message, ...) {
         vfprintf(stderr, message, ap);
         va_end(ap);
     }
-    if (mpi_safe_exit != NULL) {
-        // MPI library is linked
-        mpi_safe_exit(status);
+    // use special exit function or default exit
+    if (safe_exit_fn != NULL) {
+        safe_exit_fn(status);
     } else {
         exit(status);
     }
