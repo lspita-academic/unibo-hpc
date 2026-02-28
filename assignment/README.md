@@ -7,6 +7,9 @@ This repository contains the source code for the final project of the HPC 2025/2
 
 A serial version different from the one provided from the professor is also implemented, because I wanted to structure and modularize the code my way. The core logic behind is still the same.
 
+All versions share a main-like function [`k-means`](./src/k-means.c) to which they pass as an argument the specific implementations of the crucial parts of the algorithm.
+This way they can share common logic like I/O, initialization of structures, etc...
+
 ## Build
 
 ### Make
