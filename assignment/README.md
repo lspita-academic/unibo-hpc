@@ -165,11 +165,12 @@ Here a complete list of parameters. If anything is missing, the [Makefile](./Mak
 > [!IMPORTANT]
 > The correct compilers and flags to use are selected based on the name of the files.
 >
-> - `omp-`: Sources that use OpenMP.
-> - `mpi-`: Sources that use MPI.
-> - `cuda-`: Sources that use CUDA. THE EXTENSION `.cu` IS NOT SUFFICIENT, CUDA SOURCES MUST START WITH THIS PREFIX TO USE THE CORRECT COMPILER.
+> - `serial-`: Sources that should be included only in the serial variant.
+> - `omp-`: Sources that use OpenMP, included only in the OpenMP variant.
+> - `mpi-`: Sources that use MPI, included only in the MPI variant.
+> - `cuda-`: Sources that use CUDA, included only in the CUDA variant. THE EXTENSION `.cu` IS NOT SUFFICIENT, CUDA SOURCES MUST START WITH THIS PREFIX TO USE THE CORRECT COMPILER.
 >
-> All other sources are considered standard C with no special requirements.
+> All other sources are considered standard C with no special requirements and are shared between all variants.
 
 ### Programs and flags
 
