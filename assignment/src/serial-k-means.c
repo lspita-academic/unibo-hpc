@@ -9,8 +9,8 @@
 void serial_classify_points(ClustersCollection* clusters) {
     size_t dims = clusters->points->dimensions;
 
-    for (size_t j = 0; j < clusters->size; j++) {
-        clusters->counts[j] = 0;
+    for (size_t i = 0; i < clusters->size; i++) {
+        clusters->counts[i] = 0;
     }
 
     for (size_t i = 0; i < clusters->points->size; i++) {
