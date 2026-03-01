@@ -11,11 +11,15 @@
 #include "k-means.h"
 
 #include <hpc.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "abort.h"
 #include "args.h"
 #include "clusters.h"
+#include "demo.h"
+#include "env.h"
 #include "files.h"
 #include "points.h"
 #include "random.h"
@@ -31,10 +35,22 @@ int k_means(
 ) {
     init_random();
     Args args = parse_cli_args(argc, argv);
+    bool make_movie = get_env_bool("MAKE_MOVIE", false);
+    char* demo_dir = get_env_string("DEMO_DIR", NULL);
+
+    safe_assert(
+        !make_movie || demo_dir != NULL,
+        "DEMO_DIR env variable must be set to create a demo movie\n"
+    );
 
     FILE* input_file = safe_fopen(args.input_file_path, "r");
     PointsCollection points = read_points_collection(input_file);
     fclose(input_file);
+
+    safe_assert(
+        !make_movie || points.dimensions == 2,
+        "Input points must have 2 dimensions to create a demo movie\n"
+    );
 
     ClustersCollection clusters =
         new_clusters_collection(&points, args.n_clusters);
@@ -52,7 +68,9 @@ int k_means(
     do {
         classify_points(&clusters);
 
-        // MAKE_MOVIE
+        if (make_movie) {
+            save_demo_iteration(demo_dir, &clusters, iter);
+        }
 
         maxsqshift = update_centroids(&clusters);
         printf(

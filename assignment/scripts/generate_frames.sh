@@ -7,9 +7,9 @@
 #
 # Last modified on 2025-12-03 by Moreno Marzolla.
 
-DIR=${1:-"."}
+DIR=${1:-.}
 
-for CLU in "${DIR}/clusters_*.txt"; do
+for CLU in ${DIR}/clusters_*.txt; do
     # Remove from $CLU every character which is NOT a digit
     STEP=`echo $CLU | tr -c -d [0-9]`
     CEN="${DIR}/centroids_${STEP}.txt"

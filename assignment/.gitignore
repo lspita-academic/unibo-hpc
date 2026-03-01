@@ -1,7 +1,10 @@
 # output directories
 build/
 bin/
+
+# demo
 demo/
+demo_*.mp4
 
 # test files
 *.out

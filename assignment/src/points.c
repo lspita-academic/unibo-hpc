@@ -118,16 +118,6 @@ void free_points_collection(PointsCollection* points) {
     points->data = safe_free(points->data);
 }
 
-void print_points_collection(FILE* stream, PointsCollection* points) {
-    for (size_t i = 0; i < points->size; i++) {
-        for (size_t j = 0; j < points->dimensions; j++) {
-            size_t idx = flat_index(i, j, points->dimensions);
-            fprintf(stream, "%" POINT_COORD_FORMAT " ", points->data[idx]);
-        }
-        fputc('\n', stream);
-    }
-}
-
 void points_copy(point_coord* dest, point_coord* src, size_t dimensions) {
     memcpy(dest, src, sizeof(*dest) * dimensions);
 }

@@ -179,10 +179,10 @@ compiledb:
 
 define make_demo_target
 ifneq ($(filter demo-$(1), $(DEMO_TARGETS)),)
-demo-$(1): $(DEMO_INPUT) run-$(1)
-	MAKE_MOVIE=1 DEMO_DIR=$(DEMO_DIR) $(MAKE) run-$(1) CLUSTERS=$(DEMO_CLUSTERS) INPUT=$(DEMO_INPUT) OUTPUT=$(DEMO_OUTPUT)
-	$(GENFRAMES_SCRIPT) $(DEMO_DIR)
-	ffmpeg -pattern_type glob -stream_loop 5 -y -r 1 -i "$(DEMO_DIR)/img_*.png" -vcodec mpeg4 -r 1 $(DEMO_DIR)/demo_$(1).mp4
+demo-$(1): $(DEMO_INPUT) clean-demo run-$(1)
+	MAKE_MOVIE=1 DEMO_DIR=$(DEMO_DIR) $(MAKE) run-$(1) CLUSTERS=$(DEMO_CLUSTERS) INPUT=$(DEMO_INPUT) OUTPUT=$(DEMO_OUTPUT) && \
+	$(GENFRAMES_SCRIPT) $(DEMO_DIR) && \
+	ffmpeg -pattern_type glob -stream_loop 5 -y -r 1 -i "$(DEMO_DIR)/img_*.png" -vcodec mpeg4 -r 1 demo_$(1).mp4
 endif
 endef
 
