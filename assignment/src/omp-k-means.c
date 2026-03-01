@@ -1,6 +1,7 @@
 // Ludovico Maria Spitaleri 0001114169
 
 #include <stddef.h>
+#include <stdio.h>
 
 #include "array.h"
 #include "k-means.h"
@@ -9,31 +10,44 @@
 void omp_classify_points(ClustersCollection* clusters) {
     size_t dims = clusters->points->dimensions;
 
-    for (size_t j = 0; j < clusters->size; j++) {
-        clusters->counts[j] = 0;
-    }
-
-    for (size_t i = 0; i < clusters->points->size; i++) {
-        // index and squared distance of the nearest centroid
-        size_t nearest = clusters->size;
-        point_coord mindist = POINT_COORD_MAX;
-        for (size_t j = 0; j < clusters->size; j++) {
-            size_t idx = flat_index(i, 0, dims);
-            size_t jdx = flat_index(j, 0, dims);
-
-            point_coord dist = points_distance(
-                &clusters->points->data[idx],
-                &clusters->centroids.data[jdx],
-                dims
-            );
-            if (dist < mindist) {
-                mindist = dist;
-                nearest = j;
-            }
+#pragma omp parallel default(none) shared(clusters, dims)
+    {
+#pragma omp for schedule(static)
+        for (size_t i = 0; i < clusters->size; i++) {
+            clusters->counts[i] = 0;
         }
-        // assign the point to the nearest centroid, and update the cluster size
-        clusters->cluster_of[i] = nearest;
-        clusters->counts[nearest]++;
+
+// Wait until counts is completely reset
+#pragma omp barrier
+
+#pragma omp for schedule(static)
+        for (size_t i = 0; i < clusters->points->size; i++) {
+            // index and squared distance of the nearest centroid
+            size_t nearest = clusters->size;
+            point_coord mindist = POINT_COORD_MAX;
+            for (size_t j = 0; j < clusters->size; j++) {
+                size_t idx = flat_index(i, 0, dims);
+                size_t jdx = flat_index(j, 0, dims);
+
+                point_coord dist = points_distance(
+                    &clusters->points->data[idx],
+                    &clusters->centroids.data[jdx],
+                    dims
+                );
+                if (dist < mindist) {
+                    mindist = dist;
+                    nearest = j;
+                }
+            }
+            // assign the point to the nearest centroid, and update the cluster
+            // size
+            clusters->cluster_of[i] = nearest;
+
+            // multiple points could be assigned to the same cluster, so race
+            // conditions must be avoided
+#pragma omp atomic
+            clusters->counts[nearest]++;
+        }
     }
 }
 
