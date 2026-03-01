@@ -31,7 +31,8 @@ void serial_classify_points(ClustersCollection* clusters) {
                 nearest = j;
             }
         }
-        // assign the point to the nearest centroid, and update the cluster size
+
+        // assign the point to the nearest centroid
         clusters->cluster_of[i] = nearest;
         clusters->counts[nearest]++;
     }

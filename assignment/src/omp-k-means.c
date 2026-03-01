@@ -10,17 +10,21 @@
 void omp_classify_points(ClustersCollection* clusters) {
     size_t dims = clusters->points->dimensions;
 
-#pragma omp parallel default(none) shared(clusters, dims)
+    // OpenMP reduction must be used on a direct variable, so clusters->counts
+    // cannot be used
+    size_t* counts = clusters->counts;
+
+#pragma omp parallel default(none) shared(clusters, dims, counts)
     {
 #pragma omp for schedule(static)
         for (size_t i = 0; i < clusters->size; i++) {
-            clusters->counts[i] = 0;
+            counts[i] = 0;
         }
 
 // Wait until counts is completely reset
 #pragma omp barrier
 
-#pragma omp for schedule(static)
+#pragma omp for schedule(static) reduction(+ : counts[ : clusters->size])
         for (size_t i = 0; i < clusters->points->size; i++) {
             // index and squared distance of the nearest centroid
             size_t nearest = clusters->size;
@@ -39,14 +43,10 @@ void omp_classify_points(ClustersCollection* clusters) {
                     nearest = j;
                 }
             }
-            // assign the point to the nearest centroid, and update the cluster
-            // size
-            clusters->cluster_of[i] = nearest;
 
-            // multiple points could be assigned to the same cluster, so race
-            // conditions must be avoided
-#pragma omp atomic
-            clusters->counts[nearest]++;
+            // assign the point to the nearest centroid
+            clusters->cluster_of[i] = nearest;
+            counts[nearest]++;
         }
     }
 }
