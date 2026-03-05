@@ -174,8 +174,8 @@ $(eval $(call make_run_target,omp,$(OMP_BIN)))
 $(eval $(call make_run_target,mpi,$(MPI_BIN),$(MPIRUN) $(MPIRUN_FLAGS)))
 $(eval $(call make_run_target,cuda,$(CUDA_BIN)))
 
-compiledb:
-	$(BEAR) --append -- $(MAKE) build
+compiledb: clean-build
+	$(BEAR) -- $(MAKE) build
 
 define make_demo_target
 ifneq ($(filter demo-$(1), $(DEMO_TARGETS)),)

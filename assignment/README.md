@@ -143,10 +143,6 @@ make compiledb
 
 This target requires [bear](https://github.com/rizsotto/Bear) to be installed.
 
-> [!IMPORTANT]
-> The compilation database is created in append mode to allow for faster incremental builds.
-> It is suggested to clean all build artifacts before the first build.
-
 ### Parameters
 
 The parameters used by the targets are simple makefile variables. They can be overriden with environment variables using the same name or by providing them after the target name.
