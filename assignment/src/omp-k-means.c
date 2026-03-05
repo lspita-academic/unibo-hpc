@@ -21,9 +21,6 @@ void omp_classify_points(ClustersCollection* clusters) {
             counts[i] = 0;
         }
 
-// Wait until counts is completely reset
-#pragma omp barrier
-
 #pragma omp for schedule(static) reduction(+ : counts[ : clusters->size])
         for (size_t i = 0; i < clusters->points->size; i++) {
             // index and squared distance of the nearest centroid
