@@ -9,7 +9,6 @@
 #include <string.h>
 
 #include "abort.h"
-#include "array.h"
 #include "files.h"
 #include "memory.h"
 

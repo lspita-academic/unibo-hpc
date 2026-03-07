@@ -54,25 +54,28 @@ void update_centroids(
     point_distance* out_maxsqshift
 ) {
     size_t dims = clusters->points->dimensions;
+    point_coord* new_centroids_data = new_centroids->data;
 
     // initialize centroids to zero
+#pragma omp for schedule(static)
     for (size_t i = 0; i < clusters->size; i++) {
         size_t idx = flat_index(i, 0, dims);
-        zero_point(&new_centroids->data[idx], dims);
+        zero_point(&new_centroids_data[idx], dims);
     }
 
     // sum all points in their respective cluster centroid
+#pragma omp for schedule(static) \
+    reduction(+ : new_centroids_data[ : clusters->size])
     for (size_t i = 0; i < clusters->points->size; i++) {
         size_t idx = flat_index(i, 0, dims);
         size_t cluster_idx = flat_index(clusters->cluster_of[i], 0, dims);
 
         points_add(
-            &new_centroids->data[cluster_idx],
-            &clusters->points->data[idx],
-            dims
+            &new_centroids_data[cluster_idx], &clusters->points->data[idx], dims
         );
     }
 
+#pragma omp for schedule(static) reduction(max : out_maxsqshift[0])
     for (size_t i = 0; i < clusters->size; i++) {
         size_t idx = flat_index(i, 0, dims);
         if (clusters->counts[i] == 0) {
