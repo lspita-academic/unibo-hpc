@@ -3,8 +3,8 @@ build/
 bin/
 
 # demo
-demo/
-demo_*.mp4
+movie/
+*.mp4
 
 # test files
 *.out

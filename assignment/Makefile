@@ -24,6 +24,7 @@ BUILD_DIR?=build
 BIN_DIR?=bin
 SCRIPTS_DIR?=scripts
 INCLUDE_DIR?=include
+MOVIE_DIR?=movie
 
 # scripts
 GENFRAMES_SCRIPT:=$(SCRIPTS_DIR)/generate_frames.sh
@@ -32,17 +33,18 @@ INPUTGEN_FLAGS:=
 INPUTGEN_BIN:=$(BIN_DIR)/inputgen
 
 # demo
-DEMO_DIR?=demo
 DEMO_CLUSTERS?=5
 DEMO_INPUTGEN_POINTS?=1000
 DEMO_INPUTGEN_CLUSTERS?=50
 DEMO_INPUT?=demo.in
 DEMO_OUTPUT?=demo.out
+DEMO_MOVIE?=demo.mp4
 
 # arguments
 CLUSTERS?=$(DEMO_CLUSTERS)
 INPUT?=$(DEMO_INPUT)
 OUTPUT?=$(DEMO_OUTPUT)
+MOVIE?=$(DEMO_MOVIE)
 
 # sources
 define make_src
@@ -113,40 +115,40 @@ CUDA_BIN=$(call obj_to_bin,$(CUDA_OBJ))
 
 BINS:=$(SERIAL_BIN) $(OMP_BIN) $(MPI_BIN) $(CUDA_BIN)
 
-NODEPS_TARGETS=clean clean-build clean-compiledb clean-demo
+NODEPS_TARGETS=clean clean-build clean-compiledb clean-movie clean-demo
 
 # targets
 
 # add only targets for which the main source exists
 BUILD_TARGETS:=
 RUN_TARGETS:=
-DEMO_TARGETS:=
+MOVIE_TARGETS:=
 ifneq ($(wildcard $(SERIAL_MAIN)),)
 BUILD_TARGETS+=build-serial
 RUN_TARGETS+=run-serial
-DEMO_TARGETS+=demo-serial
+MOVIE_TARGETS+=movie-serial
 endif
 ifneq ($(wildcard $(OMP_MAIN)),)
 BUILD_TARGETS+=build-omp
 RUN_TARGETS+=run-omp
-DEMO_TARGETS+=demo-omp
+MOVIE_TARGETS+=movie-omp
 endif
 ifneq ($(wildcard $(MPI_MAIN)),)
 BUILD_TARGETS+=build-mpi
 RUN_TARGETS+=run-mpi
-DEMO_TARGETS+=demo-mpi
+MOVIE_TARGETS+=movie-mpi
 endif
 ifneq ($(wildcard $(CUDA_MAIN)),)
 BUILD_TARGETS+=build-cuda
 RUN_TARGETS+=run-cuda
-DEMO_TARGETS+=demo-cuda
+MOVIE_TARGETS+=movie-cuda
 endif
 
 .PHONY: all \
 	$(NODEPS_TARGETS) \
 	build build-inputgen $(BUILD_TARGETS) \
 	$(RUN_TARGETS) \
-	$(DEMO_TARGETS) \
+	$(MOVIE_TARGETS) \
 	demo-input \
 	compiledb \
 	sium
@@ -182,21 +184,19 @@ $(eval $(call make_run_target,cuda,$(CUDA_BIN)))
 compiledb: clean-build
 	$(BEAR) -- $(MAKE) build
 
-define make_demo_target
-ifneq ($(filter demo-$(1), $(DEMO_TARGETS)),)
-demo-$(1): $(DEMO_INPUT) clean-demo
-	MAKE_MOVIE=1 DEMO_DIR=$(DEMO_DIR) $(MAKE) run-$(1) CLUSTERS=$(DEMO_CLUSTERS) INPUT=$(DEMO_INPUT) OUTPUT=$(DEMO_OUTPUT) && \
-	$(GENFRAMES_SCRIPT) $(DEMO_DIR) && \
-	ffmpeg -pattern_type glob -stream_loop 5 -y -r 1 -i "$(DEMO_DIR)/img_*.png" -vcodec mpeg4 -r 1 demo_$(1).mp4
+define make_movie_target
+ifneq ($(filter movie-$(1), $(MOVIE_TARGETS)),)
+movie-$(1): $(MOVIE_DIR)/
+	MAKE_MOVIE=1 MOVIE_DIR=$(MOVIE_DIR) $(MAKE) run-$(1) && \
+	$(GENFRAMES_SCRIPT) $(MOVIE_DIR) && \
+	ffmpeg -pattern_type glob -stream_loop 5 -y -r 1 -i "$(MOVIE_DIR)/img_*.png" -vcodec mpeg4 -r 1 $(MOVIE)
 endif
 endef
 
-$(eval $(call make_demo_target,serial))
-$(eval $(call make_demo_target,omp))
-$(eval $(call make_demo_target,mpi))
-$(eval $(call make_demo_target,cuda))
-
-demo-input: $(DEMO_INPUT)
+$(eval $(call make_movie_target,serial))
+$(eval $(call make_movie_target,omp))
+$(eval $(call make_movie_target,mpi))
+$(eval $(call make_movie_target,cuda))
 
 clean-build:
 	rm -f $(DEPS)
@@ -208,23 +208,30 @@ clean-compiledb:
 	rm -f compile_commands.json
 	rm -f compile_commands.events.json
 
-clean-demo:
-	rm -f $(DEMO_DIR)/clusters_*.txt
-	rm -f $(DEMO_DIR)/img_*.png
-	rm -f $(DEMO_DIR)/centroids_*.txt
-	rm -f $(DEMO_DIR)/demo_*.mp4
+clean-movie:
+	rm -f $(MOVIE_DIR)/clusters_*.txt
+	rm -f $(MOVIE_DIR)/img_*.png
+	rm -f $(MOVIE_DIR)/centroids_*.txt
+	rm -f $(MOVIE)
 
-clean: clean-build clean-compiledb clean-demo
+clean-demo:
+	rm -f $(DEMO_INPUT)
+	rm -f $(DEMO_OUTPUT)
+	rm -f $(DEMO_MOVIE)
+
+clean: clean-build clean-compiledb clean-movie clean-demo
+
+demo-input: $(DEMO_INPUT)
 
 # add include directory to compilation flags
 CFLAGS+=-I$(INCLUDE_DIR)
 
 # create directories
-$(BUILD_DIR)/ $(BIN_DIR)/ $(DEMO_DIR)/ $(TESTS_DIR)/:
+$(BUILD_DIR)/ $(BIN_DIR)/ $(MOVIE_DIR)/ $(TESTS_DIR)/:
 	mkdir -p $@
 
 # create demo files
-$(DEMO_INPUT): $(INPUTGEN_BIN) | $(DEMO_DIR)/
+$(DEMO_INPUT): $(INPUTGEN_BIN)
 	$(INPUTGEN_BIN) $(DEMO_INPUTGEN_POINTS) 2 $(DEMO_INPUTGEN_CLUSTERS) > $@
 
 # override compilers and flags

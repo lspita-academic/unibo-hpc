@@ -1,6 +1,6 @@
 // Ludovico Maria Spitaleri 0001114169
 
-#include "demo.h"
+#include "movie.h"
 
 #include <stddef.h>
 
@@ -8,7 +8,7 @@
 #include "files.h"
 #include "points.h"
 
-#define DEMO_FILENAME_BUFF_SIZE 1024
+#define MOVIE_FILENAME_BUFF_SIZE 1024
 
 void save_centroids(FILE* stream, ClustersCollection* clusters) {
     size_t dims = clusters->points->dimensions;
@@ -42,12 +42,14 @@ void save_points_and_clusters(FILE* stream, ClustersCollection* clusters) {
     }
 }
 
-void save_demo_iteration(char* dir, ClustersCollection* clusters, size_t iter) {
-    char buff[DEMO_FILENAME_BUFF_SIZE];
+void save_movie_iteration(
+    char* dir, ClustersCollection* clusters, size_t iter
+) {
+    char buff[MOVIE_FILENAME_BUFF_SIZE];
 
     // save centroids
     snprintf(
-        buff, sizeof(buff), "%s/" DEMO_CENTROIDS_FILENAME_FORMAT, dir, iter
+        buff, sizeof(buff), "%s/" MOVIE_CENTROIDS_FILENAME_FORMAT, dir, iter
     );
     FILE* centroids_file = safe_fopen(buff, "w");
     save_centroids(centroids_file, clusters);
@@ -55,7 +57,7 @@ void save_demo_iteration(char* dir, ClustersCollection* clusters, size_t iter) {
 
     // save points-clusters association
     snprintf(
-        buff, sizeof(buff), "%s/" DEMO_CLUSTERS_FILENAME_FORMAT, dir, iter
+        buff, sizeof(buff), "%s/" MOVIE_CLUSTERS_FILENAME_FORMAT, dir, iter
     );
     FILE* clusters_file = safe_fopen(buff, "w");
     save_points_and_clusters(clusters_file, clusters);

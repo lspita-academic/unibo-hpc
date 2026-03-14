@@ -11,8 +11,8 @@
 #include <stdlib.h>
 
 #include "array.h"
-#include "demo.h"
 #include "k-means.h"
+#include "movie.h"
 #include "points.h"
 #include "random.h"
 
@@ -116,7 +116,7 @@ int main(int argc, char* argv[]) {
         reset_iteration(&loop);
         classify_points(&clusters);
         if (args.make_movie) {
-            save_demo_iteration(args.demo_dir, &clusters, loop.iteration);
+            save_movie_iteration(args.movie_dir, &clusters, loop.iteration);
         }
         update_centroids(&clusters, &new_centroids, &loop.maxsqshift);
         print_iteration(stdout, &loop);

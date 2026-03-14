@@ -16,7 +16,7 @@
 #define K_MEANS_MAX_ITER 100
 #define K_MEANS_TOL 1e-5
 #define MAKE_MOVIE_ENV_VAR "MAKE_MOVIE"
-#define DEMO_DIR_ENV_VAR "DEMO_DIR"
+#define MOVIE_DIR_ENV_VAR "MOVIE_DIR"
 
 char* check_cli_arg(char* arg, char* arg_name) {
     safe_assert(
@@ -48,12 +48,12 @@ KMeansArgs get_args(int argc, char* argv[]) {
     );
 
     bool make_movie = get_env_bool(MAKE_MOVIE_ENV_VAR, false);
-    char* demo_dir = get_env_string(DEMO_DIR_ENV_VAR, NULL);
+    char* movie_dir = get_env_string(MOVIE_DIR_ENV_VAR, NULL);
 
     safe_assert(
-        !make_movie || demo_dir != NULL,
-        "If " MAKE_MOVIE_ENV_VAR " env var is set, " DEMO_DIR_ENV_VAR
-        " env variable must be set to create a demo movie\n"
+        !make_movie || movie_dir != NULL,
+        "If " MAKE_MOVIE_ENV_VAR " env var is set, " MOVIE_DIR_ENV_VAR
+        " env variable must be set to create a movie\n"
     );
 
     return (KMeansArgs){
@@ -63,7 +63,7 @@ KMeansArgs get_args(int argc, char* argv[]) {
         .max_iterations = K_MEANS_MAX_ITER,
         .tolerance = K_MEANS_TOL,
         .make_movie = make_movie,
-        .demo_dir = demo_dir,
+        .movie_dir = movie_dir,
     };
 }
 

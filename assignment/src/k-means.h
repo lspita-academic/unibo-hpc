@@ -18,7 +18,7 @@ typedef struct KMeansArgs {
     size_t max_iterations;
     point_distance tolerance;
     bool make_movie;
-    char* demo_dir;
+    char* movie_dir;
 } KMeansArgs;
 
 typedef struct LoopData {
