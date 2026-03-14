@@ -9,7 +9,7 @@
 /**
  * Symbol to override the default exit function used by safe_exit.
  */
-extern exit_fn safe_exit_fn;
+extern safe_exit_fn_t safe_exit_fn;
 #pragma weak safe_exit_fn
 
 void safe_exit(int status, char* message, ...) {

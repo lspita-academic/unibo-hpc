@@ -1,5 +1,13 @@
 // Ludovico Maria Spitaleri 0001114169
 
+/*
+ * defining _XOPEN_SOURCE first allows hpc.h to not be the first header
+ * included, so autoformatters can be used.
+ */
+#if _XOPEN_SOURCE < 600
+#define _XOPEN_SOURCE 600
+#endif
+#include <hpc.h>
 #include <stdlib.h>
 
 #include "array.h"
@@ -101,7 +109,7 @@ int main(int argc, char* argv[]) {
 
     ClustersCollection clusters = create_clusters(&args, &points);
 
-    LoopData loop = create_loop_data();
+    LoopData loop = create_loop_data(hpc_gettime());
     PointsCollection new_centroids =
         new_points_collection(clusters.size, clusters.points->dimensions, NULL);
     do {
@@ -116,7 +124,7 @@ int main(int argc, char* argv[]) {
     } while (continue_loop(&loop, &args));
     free_points_collection(&new_centroids);
 
-    finish_loop(stdout, &loop);
+    finish_loop(stdout, &loop, hpc_gettime());
     write_output_file(&args, &clusters);
 
     free_clusters_collection(&clusters);

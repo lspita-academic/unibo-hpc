@@ -50,7 +50,7 @@ ClustersCollection create_clusters(KMeansArgs* args, PointsCollection* points);
 /**
  * Create and initialize loop data.
  */
-LoopData create_loop_data(void);
+LoopData create_loop_data(double start_time);
 
 /**
  * Reset loop data for new iteration.
@@ -70,7 +70,7 @@ bool continue_loop(LoopData* loop, KMeansArgs* args);
 /**
  * End loop and return the elapsed time.
  */
-double finish_loop(FILE* stream, LoopData* loop);
+double finish_loop(FILE* stream, LoopData* loop, double end_time);
 
 /**
  * Write algorithm results to the output file.

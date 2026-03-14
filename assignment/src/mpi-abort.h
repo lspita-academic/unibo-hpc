@@ -13,6 +13,6 @@ void mpi_safe_exit(int status);
 /**
  * Override the default exit function used by `safe_exit`.
  */
-exit_fn safe_exit_fn = mpi_safe_exit;
+safe_exit_fn_t safe_exit_fn = mpi_safe_exit;
 
 #endif  // MPI_ABORT_H

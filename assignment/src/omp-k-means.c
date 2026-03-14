@@ -1,5 +1,13 @@
 // Ludovico Maria Spitaleri 0001114169
 
+/*
+ * defining _XOPEN_SOURCE first allows hpc.h to not be the first header
+ * included, so autoformatters can be used.
+ */
+#if _XOPEN_SOURCE < 600
+#define _XOPEN_SOURCE 600
+#endif
+#include <hpc.h>
 #include <omp.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -56,26 +64,26 @@ void update_centroids(
     size_t dims = clusters->points->dimensions;
     point_coord* new_centroids_data = new_centroids->data;
 
-    // initialize centroids to zero
+// initialize centroids to zero
 #pragma omp for schedule(static)
     for (size_t i = 0; i < clusters->size; i++) {
         size_t idx = flat_index(i, 0, dims);
         zero_point(&new_centroids_data[idx], dims);
     }
 
-    // sum all points in their respective cluster centroid
+// sum all points in their respective cluster centroid
 #pragma omp for schedule(static) \
-    reduction(+ : new_centroids_data[ : clusters->size])
+    reduction(+ : new_centroids_data[ : clusters->size * dims])
     for (size_t i = 0; i < clusters->points->size; i++) {
         size_t idx = flat_index(i, 0, dims);
         size_t cluster_idx = flat_index(clusters->cluster_of[i], 0, dims);
-
+        // printf("%lu, %lu\n", idx, cluster_idx);
         points_add(
             &new_centroids_data[cluster_idx], &clusters->points->data[idx], dims
         );
     }
 
-#pragma omp for schedule(static) reduction(max : out_maxsqshift[0])
+#pragma omp for schedule(static) reduction(max : out_maxsqshift[ : 1])
     for (size_t i = 0; i < clusters->size; i++) {
         size_t idx = flat_index(i, 0, dims);
         if (clusters->counts[i] == 0) {
@@ -112,20 +120,23 @@ int main(int argc, char* argv[]) {
 
     ClustersCollection clusters = create_clusters(&args, &points);
 
-    LoopData loop = create_loop_data();
+    LoopData loop = create_loop_data(hpc_gettime());
     PointsCollection new_centroids =
         new_points_collection(clusters.size, clusters.points->dimensions, NULL);
 #pragma omp parallel default(none) \
     shared(clusters, loop, new_centroids, args, stdout)
     {
         do {
-/* Threads must wait the one updating the loop data between iterations */
+/* Threads must wait the ones still checking to continue the loop before
+ * resetting */
 #pragma omp barrier
 #pragma omp single
             {
                 reset_iteration(&loop);
             }
+
             classify_points(&clusters);
+
 #pragma omp single
             {
                 if (args.make_movie) {
@@ -133,8 +144,10 @@ int main(int argc, char* argv[]) {
                         args.demo_dir, &clusters, loop.iteration
                     );
                 }
-                update_centroids(&clusters, &new_centroids, &loop.maxsqshift);
             }
+
+            update_centroids(&clusters, &new_centroids, &loop.maxsqshift);
+
 #pragma omp single
             {
                 print_iteration(stdout, &loop);
@@ -144,7 +157,7 @@ int main(int argc, char* argv[]) {
     }
     free_points_collection(&new_centroids);
 
-    finish_loop(stdout, &loop);
+    finish_loop(stdout, &loop, hpc_gettime());
     write_output_file(&args, &clusters);
 
     free_clusters_collection(&clusters);

@@ -1,16 +1,7 @@
 // Ludovico Maria Spitaleri 0001114169
 
-/*
- * defining _XOPEN_SOURCE first allows hpc.h to not be the first header
- * included, so autoformatters can be used.
- */
-#if _XOPEN_SOURCE < 600
-#define _XOPEN_SOURCE 600
-#endif
-
 #include "k-means.h"
 
-#include <hpc.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -104,11 +95,11 @@ ClustersCollection create_clusters(KMeansArgs* args, PointsCollection* points) {
     return clusters;
 }
 
-LoopData create_loop_data(void) {
+LoopData create_loop_data(double start_time) {
     return (LoopData){
         .maxsqshift = 0,
         .iteration = 0,
-        .start_time = hpc_gettime(),
+        .start_time = start_time,
     };
 }
 
@@ -128,8 +119,8 @@ bool continue_loop(LoopData* loop, KMeansArgs* args) {
            (loop->iteration <= args->max_iterations);
 }
 
-double finish_loop(FILE* stream, LoopData* loop) {
-    double elapsed = hpc_gettime() - loop->start_time;
+double finish_loop(FILE* stream, LoopData* loop, double end_time) {
+    double elapsed = end_time - loop->start_time;
     fprintf(stream, "\nMain loop completed\n");
     fprintf(stream, "Elapsed seconds %.3f\n\n", elapsed);
     return elapsed;

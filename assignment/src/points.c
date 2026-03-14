@@ -9,6 +9,7 @@
 #include <string.h>
 
 #include "abort.h"
+#include "array.h"
 #include "files.h"
 #include "memory.h"
 
@@ -115,6 +116,17 @@ PointsCollection read_points_collection(FILE* stream) {
 
 void free_points_collection(PointsCollection* points) {
     points->data = safe_free(points->data);
+}
+
+void print_points_collection(FILE* stream, PointsCollection* points) {
+    size_t dims = points->dimensions;
+    for (size_t i = 0; i < points->size; i++) {
+        for (size_t j = 0; j < dims; j++) {
+            size_t idx = flat_index(i, j, dims);
+            fprintf(stream, "%" POINT_COORD_FORMAT " ", points->data[idx]);
+        }
+        fprintf(stream, "\n");
+    }
 }
 
 void points_copy(point_coord* dest, point_coord* src, size_t dimensions) {
