@@ -10,16 +10,18 @@
 /**
  * Point's single coordinate value.
  */
-typedef float point_coord;
+typedef double point_coord;
 
 /**
  * Point's coordinates distance value.
  */
 typedef point_coord point_distance;
 
-#define POINT_COORD_FORMAT "f"
-#define POINT_COORD_MAX FLT_MAX
-#define POINT_DISTANCE_FORMAT POINT_COORD_FORMAT
+#define POINT_COORD_OUT_FORMAT "f"
+#define POINT_COORD_IN_FORMAT "lf"
+#define POINT_COORD_MAX DBL_MAX
+#define POINT_DISTANCE_OUT_FORMAT POINT_COORD_OUT_FORMAT
+#define POINT_DISTANCE_IN_FORMAT POINT_COORD_IN_FORMAT
 #define POINT_DISTANCE_MAX POINT_COORD_MAX
 
 /**

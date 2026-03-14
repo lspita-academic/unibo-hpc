@@ -69,7 +69,7 @@ void read_points_collection_dimensions(
         int item_chars = 0;
         while (sscanf(
                    row_buffer + item_offset,
-                   "%" POINT_COORD_FORMAT "%n",
+                   "%" POINT_COORD_IN_FORMAT "%n",
                    &item,
                    &item_chars
                ) > 0) {
@@ -97,7 +97,7 @@ point_coord* read_points_collection_items(
     point_coord* items = safe_malloc(sizeof(*items) * points * dims);
 
     for (size_t i = 0; i < points * dims; i++) {
-        int nread = fscanf(stream, "%" POINT_COORD_FORMAT, &items[i]);
+        int nread = fscanf(stream, "%" POINT_COORD_IN_FORMAT, &items[i]);
         safe_assert(nread == 1, "Failed to read input file item\n");
     }
     return items;
@@ -123,7 +123,7 @@ void print_points_collection(FILE* stream, PointsCollection* points) {
     for (size_t i = 0; i < points->size; i++) {
         for (size_t j = 0; j < dims; j++) {
             size_t idx = flat_index(i, j, dims);
-            fprintf(stream, "%" POINT_COORD_FORMAT " ", points->data[idx]);
+            fprintf(stream, "%" POINT_COORD_OUT_FORMAT " ", points->data[idx]);
         }
         fprintf(stream, "\n");
     }

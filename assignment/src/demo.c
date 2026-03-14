@@ -18,7 +18,7 @@ void save_centroids(FILE* stream, ClustersCollection* clusters) {
             size_t idx = flat_index(i, j, dims);
             fprintf(
                 stream,
-                "%" POINT_COORD_FORMAT " ",
+                "%" POINT_COORD_OUT_FORMAT " ",
                 clusters->centroids.data[idx]
             );
         }
@@ -33,7 +33,9 @@ void save_points_and_clusters(FILE* stream, ClustersCollection* clusters) {
         for (size_t j = 0; j < dims; j++) {
             size_t idx = flat_index(i, j, dims);
             fprintf(
-                stream, "%" POINT_COORD_FORMAT " ", clusters->points->data[idx]
+                stream,
+                "%" POINT_COORD_OUT_FORMAT " ",
+                clusters->points->data[idx]
             );
         }
         fprintf(stream, "%lu\n", clusters->cluster_of[i]);

@@ -108,13 +108,22 @@ void reset_iteration(LoopData* loop) { loop->maxsqshift = 0; }
 void print_iteration(FILE* stream, LoopData* loop) {
     fprintf(
         stream,
-        "Iteration %3lu, maxsqshift = %" POINT_DISTANCE_FORMAT "\n",
+        "Iteration %3lu, maxsqshift = %" POINT_DISTANCE_OUT_FORMAT "\n",
         loop->iteration,
         loop->maxsqshift
     );
 }
 
 bool continue_loop(LoopData* loop, KMeansArgs* args) {
+    // printf(
+    //     "maxss: %" POINT_DISTANCE_OUT_FORMAT
+    //     ", tol: %l" POINT_DISTANCE_OUT_FORMAT ", it: %lu/%lu, c1: %d, c2:
+    //     %d\n", loop->maxsqshift, args->tolerance * args->tolerance,
+    //     loop->iteration,
+    //     args->max_iterations,
+    //     (loop->maxsqshift > args->tolerance * args->tolerance),
+    //     (loop->iteration <= args->max_iterations)
+    // );
     return (loop->maxsqshift > args->tolerance * args->tolerance) &&
            (loop->iteration <= args->max_iterations);
 }

@@ -43,7 +43,9 @@ void print_clusters_collection(FILE* stream, ClustersCollection* clusters) {
         for (size_t j = 0; j < dims; j++) {
             size_t idx = flat_index(i, j, dims);
             fprintf(
-                stream, " %" POINT_COORD_FORMAT, clusters->centroids.data[idx]
+                stream,
+                " %" POINT_COORD_OUT_FORMAT,
+                clusters->centroids.data[idx]
             );
         }
         fprintf(stream, "\n");
@@ -53,7 +55,9 @@ void print_clusters_collection(FILE* stream, ClustersCollection* clusters) {
         for (size_t j = 0; j < dims; j++) {
             size_t idx = flat_index(i, j, dims);
             fprintf(
-                stream, "%" POINT_COORD_FORMAT " ", clusters->points->data[idx]
+                stream,
+                "%" POINT_COORD_OUT_FORMAT " ",
+                clusters->points->data[idx]
             );
         }
         fprintf(stream, "%lu\n", clusters->cluster_of[i]);

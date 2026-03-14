@@ -174,11 +174,16 @@ Here a complete list of parameters. If anything is missing, the [Makefile](./Mak
 - `MPICC`: Compiler for MPI sources (default: mpicc).
 - `NVCC`: Compiler for CUDA sources (default: nvcc).
 - `BEAR`: Compiler for compiledb (default: bear).
-- `CFLAGS`: Flags to use when compiling all sources. The -std flag is ignored for CUDA sources. (default: -std=c99 -Wall -Wpedantic).
-- `OMP_FLAGS`: Flags to add for OpenMP sources (default: -fopenmp).
-- `NVCC_FLAGS`: Flags to add for CUDA sources (default: -Wno-deprecated-gpu-targets).
+- `CFLAGS`: Flags to use when compiling all sources.
+- `LDFLAGS`: Flags to use when linking all sources.
+- `OMP_CFLAGS`: Flags to add when compiling OpenMP sources (default: -fopenmp).
+- `OMP_LDFLAGS`: Flags to add when linking OpenMP sources (default: -lgomp).
+- `MPI_CFLAGS`: Flags to add when compiling MPI sources (default: none).
+- `MPI_LDFLAGS`: Flags to add when linking MPI sources (default: none).
+- `CUDA_CFLAGS`: Flags to add when compiling CUDA sources (default: -Wno-deprecated-gpu-targets).
+- `CUDA_LDFLAGS`: Flags to add when linking CUDA sources (default: none).
 - `MPIRUN`: Wrapper to use to run MPI binaries (default: mpirun).
-- `MPIRUN_FLAGS`: Flags to add to the wrapper when running MPI binaries (default: "").
+- `MPIRUN_FLAGS`: Flags to add to the wrapper when running MPI binaries (default: none).
 - `MAKE`: Make program to use when running targets inside targets, e.g. inside the demo target (default: make).
 
 ### Directories
