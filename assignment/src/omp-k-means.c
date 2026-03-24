@@ -7,9 +7,9 @@
 #if _XOPEN_SOURCE < 600
 #define _XOPEN_SOURCE 600
 #endif
+
 #include <hpc.h>
 #include <omp.h>
-#include <stdio.h>
 #include <stdlib.h>
 
 #include "array.h"
@@ -77,7 +77,6 @@ void update_centroids(
     for (size_t i = 0; i < clusters->points->size; i++) {
         size_t idx = flat_index(i, 0, dims);
         size_t cluster_idx = flat_index(clusters->cluster_of[i], 0, dims);
-        // printf("%lu, %lu\n", idx, cluster_idx);
         points_add(
             &new_centroids_data[cluster_idx], &clusters->points->data[idx], dims
         );
