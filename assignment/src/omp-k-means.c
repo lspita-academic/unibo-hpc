@@ -114,10 +114,11 @@ void update_centroids(
 int main(int argc, char* argv[]) {
     init_random();
     KMeansArgs args = get_args(argc, argv);
-    PointsCollection points = read_input_file(&args);
+    PointsCollection points =
+        read_input_file(args.input_file_path, args.make_movie);
     print_inputs(stdout, &args, &points);
 
-    ClustersCollection clusters = create_clusters(&args, &points);
+    ClustersCollection clusters = create_clusters(args.n_clusters, &points);
 
     LoopData loop = create_loop_data(hpc_gettime());
     PointsCollection new_centroids =
@@ -152,7 +153,7 @@ int main(int argc, char* argv[]) {
                 print_iteration(stdout, &loop);
                 loop.iteration++;
             }
-        } while (continue_loop(&loop, &args));
+        } while (continue_loop(&loop, args.tolerance, args.max_iterations));
     }
     free_points_collection(&new_centroids);
 

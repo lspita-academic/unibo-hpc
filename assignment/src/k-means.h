@@ -35,7 +35,7 @@ KMeansArgs get_args(int argc, char* argv[]);
 /**
  * Read points from the input file.
  */
-PointsCollection read_input_file(KMeansArgs* args);
+PointsCollection read_input_file(char* input_file_path, bool make_movie);
 
 /**
  * Print algorithm arguments.
@@ -45,7 +45,7 @@ void print_inputs(FILE* stream, KMeansArgs* args, PointsCollection* points);
 /**
  * Create and initialize clusters collection.
  */
-ClustersCollection create_clusters(KMeansArgs* args, PointsCollection* points);
+ClustersCollection create_clusters(size_t n_clusters, PointsCollection* points);
 
 /**
  * Create and initialize loop data.
@@ -65,7 +65,7 @@ void print_iteration(FILE* stream, LoopData* loop);
 /**
  * Check if the loop should continue.
  */
-bool continue_loop(LoopData* loop, KMeansArgs* args);
+bool continue_loop(LoopData* loop, point_distance tolerance, size_t max_iterations);
 
 /**
  * End loop and return the elapsed time.

@@ -4,16 +4,22 @@
  * defining _XOPEN_SOURCE first allows hpc.h to not be the first header
  * included, so autoformatters can be used.
  */
+#include <stddef.h>
+
+#include "clusters.h"
 #if _XOPEN_SOURCE < 600
 #define _XOPEN_SOURCE 600
 #endif
 
 #include <hpc.h>
+#include <mpi.h>
 #include <stdlib.h>
 
 #include "array.h"
 #include "k-means.h"
 #include "movie.h"
+#include "mpi-points.h"
+#include "mpi-utils.h"
 #include "points.h"
 #include "random.h"
 
@@ -102,34 +108,89 @@ void update_centroids(
     }
 }
 
-int main(int argc, char* argv[]) {
-    init_random();
-    KMeansArgs args = get_args(argc, argv);
-    PointsCollection points = read_input_file(&args);
-    print_inputs(stdout, &args, &points);
+typedef struct BroadcastData {
+    size_t points_size;
+    size_t dimensions;
+    size_t n_clusters;
+    point_coord* centroids_data;
+} BroadcastData;
 
-    ClustersCollection clusters = create_clusters(&args, &points);
+MPI_Datatype mpi_broadcast_type(BroadcastData *broadcast_data) {
+    // TODO: broadcast data mpi datatype (1 block per parameter?)
+    int n_blocks = 2; // size_t parameters +
+}
+
+int main(int argc, char* argv[]) {
+    KMeansArgs master_args;
+    PointsCollection master_points;
+    ClustersCollection master_clusters;
+
+    MPI_Init(&argc, &argv);
+
+    int mpi_rank, mpi_nproc;
+    MPI_Comm_rank(MPI_DEFAULT_COMM, &mpi_rank);
+    MPI_Comm_size(MPI_DEFAULT_COMM, &mpi_nproc);
+
+    size_t args_buff[3];
+    MPI_Datatype mpi_args_type;
+    MPI_Type_contiguous(3, MPI_SIZE_T, &mpi_args_type);
+    MPI_Type_commit(&mpi_args_type);
+
+    if (mpi_is_master(mpi_rank)) {
+        init_random();
+        master_args = get_args(argc, argv);
+        master_points = read_input_file(
+            master_args.input_file_path, master_args.make_movie
+        );
+        print_inputs(stdout, &master_args, &master_points);
+        master_clusters =
+            create_clusters(master_args.n_clusters, &master_points);
+
+        args_buff[0] =
+            (master_points.size / mpi_nproc) +
+            (mpi_is_master(mpi_rank) ? master_points.size % mpi_nproc : 0);
+        args_buff[1] = master_points.dimensions;
+        args_buff[2] = master_clusters.size;
+    }
+
+    MPI_Bcast(args_buff, 1, mpi_args_type, MPI_MASTER_RANK, MPI_DEFAULT_COMM);
+    size_t points_size = args_buff[0];
+    size_t dimensions = args_buff[1];
+    size_t n_clusters = args_buff[2];
+
+    PointsCollection points =
+        new_points_collection(points_size, dimensions, NULL);
+    ClustersCollection clusters = new_clusters_collection(&points, n_clusters);
+    PointsCollection new_centroids =
+        new_points_collection(n_clusters, dimensions, NULL);
 
     LoopData loop = create_loop_data(hpc_gettime());
-    PointsCollection new_centroids =
-        new_points_collection(clusters.size, clusters.points->dimensions, NULL);
     do {
         reset_iteration(&loop);
-        classify_points(&clusters);
-        if (args.make_movie) {
-            save_movie_iteration(args.movie_dir, &clusters, loop.iteration);
+        classify_points(&master_clusters);
+        if (mpi_is_master(mpi_rank) && master_args.make_movie) {
+            save_movie_iteration(
+                master_args.movie_dir, &master_clusters, loop.iteration
+            );
         }
-        update_centroids(&clusters, &new_centroids, &loop.maxsqshift);
+        update_centroids(&master_clusters, &new_centroids, &loop.maxsqshift);
         print_iteration(stdout, &loop);
         loop.iteration++;
-    } while (continue_loop(&loop, &args));
+    } while (
+        continue_loop(&loop, master_args.tolerance, master_args.max_iterations)
+    );
     free_points_collection(&new_centroids);
-
-    finish_loop(stdout, &loop, hpc_gettime());
-    write_output_file(&args, &clusters);
-
     free_clusters_collection(&clusters);
     free_points_collection(&points);
 
+    if (mpi_is_master(mpi_rank)) {
+        finish_loop(stdout, &loop, hpc_gettime());
+        write_output_file(&master_args, &master_clusters);
+
+        free_clusters_collection(&master_clusters);
+        free_points_collection(&master_points);
+    }
+
+    MPI_Finalize();
     return EXIT_SUCCESS;
 }

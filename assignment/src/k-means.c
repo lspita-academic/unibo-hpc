@@ -4,7 +4,6 @@
 
 #include <stdbool.h>
 #include <stddef.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -67,13 +66,13 @@ KMeansArgs get_args(int argc, char* argv[]) {
     };
 }
 
-PointsCollection read_input_file(KMeansArgs* args) {
-    FILE* input_file = safe_fopen(args->input_file_path, "r");
+PointsCollection read_input_file(char* input_file_path, bool make_movie) {
+    FILE* input_file = safe_fopen(input_file_path, "r");
     PointsCollection points = read_points_collection(input_file);
     fclose(input_file);
 
     safe_assert(
-        !args->make_movie || points.dimensions == 2,
+        !make_movie || points.dimensions == 2,
         "Input points must have 2 dimensions to create a demo movie\n"
     );
 
@@ -88,9 +87,9 @@ void print_inputs(FILE* stream, KMeansArgs* args, PointsCollection* points) {
     fprintf(stream, "Clusters (K)..... %lu\n\n", args->n_clusters);
 }
 
-ClustersCollection create_clusters(KMeansArgs* args, PointsCollection* points) {
+ClustersCollection create_clusters(size_t n_clusters, PointsCollection* points) {
     ClustersCollection clusters =
-        new_clusters_collection(points, args->n_clusters);
+        new_clusters_collection(points, n_clusters);
     init_centroids(&clusters);
     return clusters;
 }
@@ -114,18 +113,9 @@ void print_iteration(FILE* stream, LoopData* loop) {
     );
 }
 
-bool continue_loop(LoopData* loop, KMeansArgs* args) {
-    // printf(
-    //     "maxss: %" POINT_DISTANCE_OUT_FORMAT
-    //     ", tol: %l" POINT_DISTANCE_OUT_FORMAT ", it: %lu/%lu, c1: %d, c2:
-    //     %d\n", loop->maxsqshift, args->tolerance * args->tolerance,
-    //     loop->iteration,
-    //     args->max_iterations,
-    //     (loop->maxsqshift > args->tolerance * args->tolerance),
-    //     (loop->iteration <= args->max_iterations)
-    // );
-    return (loop->maxsqshift > args->tolerance * args->tolerance) &&
-           (loop->iteration <= args->max_iterations);
+bool continue_loop(LoopData* loop, point_distance tolerance, size_t max_iterations) {
+    return (loop->maxsqshift > tolerance * tolerance) &&
+           (loop->iteration <= max_iterations);
 }
 
 double finish_loop(FILE* stream, LoopData* loop, double end_time) {
