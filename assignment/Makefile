@@ -150,7 +150,7 @@ endif
 	$(RUN_TARGETS) \
 	$(MOVIE_TARGETS) \
 	demo-input \
-	compiledb \
+	compiledb compiledb-full \
 	sium
 
 all: build
@@ -181,7 +181,10 @@ $(eval $(call make_run_target,omp,$(OMP_BIN)))
 $(eval $(call make_run_target,mpi,$(MPI_BIN),$(MPIRUN) $(MPIRUN_FLAGS)))
 $(eval $(call make_run_target,cuda,$(CUDA_BIN)))
 
-compiledb: clean-build
+compiledb:
+	$(BEAR) --append -- $(MAKE) build
+
+compiledb-full: clean-build
 	$(BEAR) -- $(MAKE) build
 
 define make_movie_target

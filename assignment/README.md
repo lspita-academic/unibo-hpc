@@ -136,10 +136,12 @@ The code formatting is based on the Google C++ style guide provided by the [clan
 
 ### Compilation database
 
-A make target to create a compilation database from the build target for clangd is provided.
+Make targets to create a compilation database from the build target for clangd are provided.
 
 ```sh
-make compiledb
+make compiledb # compiles what has changed and updates the compiledb
+# or
+make compiledb-full # cleans build artifacts and recompiles all sources for a clean compiledb
 ```
 
 This target requires [bear](https://github.com/rizsotto/Bear) to be installed.
