@@ -10,10 +10,10 @@
 #include "random.h"
 
 ClustersCollection new_clusters_collection(
-    PointsCollection* points, size_t n_clusters
+    PointsCollection* points, size_t n_clusters, point_coord* centroids_data
 ) {
     PointsCollection centroids =
-        new_points_collection(n_clusters, points->dimensions, NULL);
+        new_points_collection(n_clusters, points->dimensions, centroids_data);
 
     size_t* cluster_of = safe_malloc(sizeof(*cluster_of) * points->size);
     size_t* counts = safe_malloc(sizeof(*counts) * n_clusters);

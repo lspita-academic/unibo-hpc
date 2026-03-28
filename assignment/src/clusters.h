@@ -23,7 +23,7 @@ typedef struct ClustersCollection {
  * Create a `ClustersCollection` from a `PointsCollection`.
  */
 ClustersCollection new_clusters_collection(
-    PointsCollection* points, size_t n_clusters
+    PointsCollection* points, size_t n_clusters, point_coord* points_data
 );
 
 /**

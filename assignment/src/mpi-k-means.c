@@ -4,18 +4,17 @@
  * defining _XOPEN_SOURCE first allows hpc.h to not be the first header
  * included, so autoformatters can be used.
  */
-#include <stddef.h>
-
-#include "clusters.h"
 #if _XOPEN_SOURCE < 600
 #define _XOPEN_SOURCE 600
 #endif
 
 #include <hpc.h>
 #include <mpi.h>
+#include <stddef.h>
 #include <stdlib.h>
 
 #include "array.h"
+#include "clusters.h"
 #include "k-means.h"
 #include "movie.h"
 #include "mpi-points.h"
@@ -56,6 +55,7 @@ void classify_points(ClustersCollection* clusters) {
 }
 
 void update_centroids(
+    int mpi_rank,
     ClustersCollection* clusters,
     PointsCollection* new_centroids,
     point_distance* out_maxsqshift
@@ -80,6 +80,31 @@ void update_centroids(
         );
     }
 
+    /**
+     * From man pages of MPI_Reduce:
+     * USE OF IN-PLACE OPTION
+     * When the communicator is an intracommunicator, you can perform a reduce
+     * operation in-place (the output buffer is used as the input buffer). Use
+     * the variable MPI_IN_PLACE as the value of the root process sendbuf. In
+     * this case, the input data is taken at the root from the receive buffer,
+     * where it will be replaced by the output data.
+     */
+    MPI_Reduce(
+        mpi_is_master(mpi_rank) ? MPI_IN_PLACE : new_centroids->data,
+        new_centroids->data,
+        clusters->centroids.size * dims,
+        MPI_POINT_COORD,
+        MPI_SUM,
+        MPI_MASTER_RANK,
+        MPI_DEFAULT_COMM
+    );
+
+    // The number of clusters is a lot smaller than the number of points, so the
+    // overhead to split the work between the mpi processes makes the program
+    // slower than the serial version for most of the cases.
+    if (!mpi_is_master(mpi_rank)) {
+        return;
+    }
     for (size_t i = 0; i < clusters->size; i++) {
         size_t idx = flat_index(i, 0, dims);
         if (clusters->counts[i] == 0) {
@@ -108,16 +133,30 @@ void update_centroids(
     }
 }
 
-typedef struct BroadcastData {
-    size_t points_size;
+typedef struct InputInfo {
+    size_t total_points;
     size_t dimensions;
     size_t n_clusters;
-    point_coord* centroids_data;
-} BroadcastData;
+} InputInfo;
 
-MPI_Datatype mpi_broadcast_type(BroadcastData *broadcast_data) {
-    // TODO: broadcast data mpi datatype (1 block per parameter?)
-    int n_blocks = 2; // size_t parameters +
+MPI_Datatype mpi_input_info_type(void) {
+    // https://www.mpich.org/static/docs/v3.1/www3/MPI_Type_create_struct.html
+    // https://stackoverflow.com/a/9865041
+    MPI_Datatype input_info_type;
+
+    int n_blocks = 3;
+    int block_lengths[] = {1, 1, 1};
+    MPI_Aint displacements[] = {
+        offsetof(InputInfo, total_points),
+        offsetof(InputInfo, dimensions),
+        offsetof(InputInfo, n_clusters)
+    };
+    MPI_Datatype types[] = {MPI_SIZE_T, MPI_SIZE_T, MPI_SIZE_T};
+
+    MPI_Type_create_struct(
+        n_blocks, block_lengths, displacements, types, &input_info_type
+    );
+    return input_info_type;
 }
 
 int main(int argc, char* argv[]) {
@@ -131,11 +170,10 @@ int main(int argc, char* argv[]) {
     MPI_Comm_rank(MPI_DEFAULT_COMM, &mpi_rank);
     MPI_Comm_size(MPI_DEFAULT_COMM, &mpi_nproc);
 
-    size_t args_buff[3];
-    MPI_Datatype mpi_args_type;
-    MPI_Type_contiguous(3, MPI_SIZE_T, &mpi_args_type);
-    MPI_Type_commit(&mpi_args_type);
+    int master_n_points[mpi_nproc];
+    int master_points_displacements[mpi_nproc];
 
+    InputInfo input_info;
     if (mpi_is_master(mpi_rank)) {
         init_random();
         master_args = get_args(argc, argv);
@@ -146,39 +184,115 @@ int main(int argc, char* argv[]) {
         master_clusters =
             create_clusters(master_args.n_clusters, &master_points);
 
-        args_buff[0] =
-            (master_points.size / mpi_nproc) +
-            (mpi_is_master(mpi_rank) ? master_points.size % mpi_nproc : 0);
-        args_buff[1] = master_points.dimensions;
-        args_buff[2] = master_clusters.size;
+        input_info = (InputInfo){
+            .total_points = master_points.size,
+            .dimensions = master_points.dimensions,
+            .n_clusters = master_clusters.size,
+        };
     }
 
-    MPI_Bcast(args_buff, 1, mpi_args_type, MPI_MASTER_RANK, MPI_DEFAULT_COMM);
-    size_t points_size = args_buff[0];
-    size_t dimensions = args_buff[1];
-    size_t n_clusters = args_buff[2];
+    MPI_Datatype input_info_type = mpi_input_info_type();
+    MPI_Bcast(
+        &input_info, 1, input_info_type, MPI_MASTER_RANK, MPI_DEFAULT_COMM
+    );
 
+    size_t n_points =
+        (input_info.total_points / mpi_nproc) +
+        (mpi_rank == mpi_nproc - 1 ? input_info.total_points % mpi_nproc : 0);
+    size_t points_displacement = mpi_rank * n_points;
+    MPI_Gather(
+        &n_points,
+        1,
+        MPI_SIZE_T,
+        master_n_points,
+        1,
+        MPI_SIZE_T,
+        MPI_MASTER_RANK,
+        MPI_DEFAULT_COMM
+    );
+    MPI_Gather(
+        &points_displacement,
+        1,
+        MPI_SIZE_T,
+        master_points_displacements,
+        1,
+        MPI_SIZE_T,
+        MPI_MASTER_RANK,
+        MPI_DEFAULT_COMM
+    );
+
+    MPI_Datatype point_type = mpi_point_type(input_info.dimensions);
     PointsCollection points =
-        new_points_collection(points_size, dimensions, NULL);
-    ClustersCollection clusters = new_clusters_collection(&points, n_clusters);
-    PointsCollection new_centroids =
-        new_points_collection(n_clusters, dimensions, NULL);
+        new_points_collection(n_points, input_info.dimensions, NULL);
+    MPI_Scatterv(
+        master_points.data,
+        master_n_points,
+        master_points_displacements,
+        point_type,
+        &points.data,
+        n_points,
+        point_type,
+        MPI_MASTER_RANK,
+        MPI_DEFAULT_COMM
+    );
+
+    ClustersCollection clusters = new_clusters_collection(
+        &points,
+        input_info.n_clusters,
+        mpi_is_master(mpi_rank) ? master_clusters.centroids.data : NULL
+    );
 
     LoopData loop = create_loop_data(hpc_gettime());
+    PointsCollection new_centroids = new_points_collection(
+        input_info.n_clusters, input_info.dimensions, NULL
+    );
     do {
         reset_iteration(&loop);
-        classify_points(&master_clusters);
+        MPI_Bcast(
+            &clusters.centroids.data,
+            clusters.centroids.size,
+            point_type,
+            MPI_MASTER_RANK,
+            MPI_DEFAULT_COMM
+        );
+        classify_points(&clusters);
+        MPI_Reduce(
+            clusters.counts,
+            master_clusters.counts,
+            input_info.n_clusters,
+            MPI_SIZE_T,
+            MPI_SUM,
+            MPI_MASTER_RANK,
+            MPI_DEFAULT_COMM
+        );
+
         if (mpi_is_master(mpi_rank) && master_args.make_movie) {
             save_movie_iteration(
                 master_args.movie_dir, &master_clusters, loop.iteration
             );
         }
-        update_centroids(&master_clusters, &new_centroids, &loop.maxsqshift);
-        print_iteration(stdout, &loop);
+
+        update_centroids(mpi_rank, &clusters, &new_centroids, &loop.maxsqshift);
+        MPI_Bcast(
+            &loop.maxsqshift,
+            1,
+            MPI_POINT_DISTANCE,
+            MPI_MASTER_RANK,
+            MPI_DEFAULT_COMM
+        );
+
+        if (mpi_is_master(mpi_rank)) {
+            print_iteration(stdout, &loop);
+        }
         loop.iteration++;
     } while (
         continue_loop(&loop, master_args.tolerance, master_args.max_iterations)
     );
+    if (mpi_is_master(mpi_rank)) {
+        free_points_collection(&master_clusters.centroids);
+        master_clusters.centroids = clusters.centroids;
+    }
+
     free_points_collection(&new_centroids);
     free_clusters_collection(&clusters);
     free_points_collection(&points);

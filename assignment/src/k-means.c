@@ -89,7 +89,7 @@ void print_inputs(FILE* stream, KMeansArgs* args, PointsCollection* points) {
 
 ClustersCollection create_clusters(size_t n_clusters, PointsCollection* points) {
     ClustersCollection clusters =
-        new_clusters_collection(points, n_clusters);
+        new_clusters_collection(points, n_clusters, NULL);
     init_centroids(&clusters);
     return clusters;
 }
