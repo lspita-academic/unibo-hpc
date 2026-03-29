@@ -7,7 +7,7 @@ BEAR?=bear
 CFLAGS+=-std=c99 -Wall -Wpedantic
 LDFLAGS+=
 OMP_CFLAGS+=-fopenmp
-OMP_LDFLAGS+=-lgomp
+OMP_LDFLAGS+=-fopenmp
 MPI_CFLAGS+=
 MPI_LDFLAGS+=
 CUDA_CFLAGS+=-Wno-deprecated-gpu-targets
