@@ -121,7 +121,7 @@ bool continue_loop(LoopData* loop, point_distance tolerance, size_t max_iteratio
 double finish_loop(FILE* stream, LoopData* loop, double end_time) {
     double elapsed = end_time - loop->start_time;
     fprintf(stream, "\nMain loop completed\n");
-    fprintf(stream, "Elapsed seconds %.3f\n\n", elapsed);
+    fprintf(stream, "Elapsed seconds: %.3f\n\n", elapsed);
     return elapsed;
 }
 

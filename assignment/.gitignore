@@ -14,3 +14,6 @@ movie*/
 compile_commands.json
 compile_commands.events.json
 .cache
+
+# scaling
+scaling*/

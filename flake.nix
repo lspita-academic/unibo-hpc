@@ -54,6 +54,8 @@
               # image manipulation
               ffmpeg
               gnuplot
+              # scaling scripts
+              bc
             ];
             shellHook = ''
               set -a
