@@ -350,6 +350,9 @@ int main(int argc, char* argv[]) {
     free_clusters_collection(&clusters);
     free_points_collection(&points);
 
+    MPI_Type_free(&point_type);
+    MPI_Type_free(&input_info_type);
+
     MPI_Finalize();
     return EXIT_SUCCESS;
 }
