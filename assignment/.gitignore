@@ -2,17 +2,15 @@
 build/
 bin/
 
-# demo
-movie/
+# movie
+movie*/
 *.mp4
 
 # test files
 *.out
 *.in
 
-# clangd
+# clangd / bear
 compile_commands.json
-.cache
-
-# bear
 compile_commands.events.json
+.cache
