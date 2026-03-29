@@ -14,7 +14,6 @@
 #include <hpc.h>
 // clang-format on
 #include <stddef.h>
-#include <stdio.h>
 #include <stdlib.h>
 
 #include "array.h"
