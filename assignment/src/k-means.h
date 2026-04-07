@@ -17,6 +17,7 @@ typedef struct KMeansArgs {
     char* output_file_path;
     size_t max_iterations;
     point_distance tolerance;
+    bool force_iterations;
     bool make_movie;
     char* movie_dir;
 } KMeansArgs;
@@ -65,7 +66,12 @@ void print_iteration(FILE* stream, LoopData* loop);
 /**
  * Check if the loop should continue.
  */
-bool continue_loop(LoopData* loop, point_distance tolerance, size_t max_iterations);
+bool continue_loop(
+    LoopData* loop,
+    point_distance tolerance,
+    size_t max_iterations,
+    bool force_iterations
+);
 
 /**
  * End loop and return the elapsed time.

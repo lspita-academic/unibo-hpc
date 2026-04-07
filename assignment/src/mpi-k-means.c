@@ -326,7 +326,10 @@ int main(int argc, char* argv[]) {
             print_iteration(stdout, &loop);
             loop.iteration++;
             continue_flag = continue_loop(
-                &loop, master_args.tolerance, master_args.max_iterations
+                &loop,
+                master_args.tolerance,
+                master_args.max_iterations,
+                master_args.force_iterations
             );
         }
         MPI_Bcast(

@@ -43,9 +43,12 @@ for i in $(seq 1 $NREPS); do table_header="$table_header\tt$i"; done
 echo -e "$table_header"
 
 for p in $(seq 1 $MAX_CORES); do
+    ENV_VARS=()
+    PREFIX=()
     case ${SCALING_TYPE} in
         weak)
             INPUT_POINTS=$(( INPUT_BASE_POINTS * p ))
+            ENV_VARS+=(FORCE_ITERATIONS=true)
             ;;
         strong)
             INPUT_POINTS=$INPUT_BASE_POINTS
@@ -54,13 +57,12 @@ for p in $(seq 1 $MAX_CORES); do
 
     case ${VARIANT} in
         omp)
-            PREFIX=(env OMP_NUM_THREADS=$p)
+            ENV_VARS+=(OMP_NUM_THREADS=$p)
             ;;
         mpi)
             PREFIX=(mpirun -n $p)
             ;;
         serial)
-            PREFIX=()
             ;;
     esac
 
@@ -73,8 +75,12 @@ for p in $(seq 1 $MAX_CORES); do
     echo -n -e "$p\t"
     echo -n -e "$INPUT_POINTS\t"
     for rep in `seq $NREPS`; do
-        OUTPUT_FILE=${FILE_BASENAME}-${SCALING_TYPE}-${VARIANT}-P${p}-R${rep}.out
-        EXEC_TIME="$( ${PREFIX[@]} $BINARY $INPUT_CLUSTERS $INPUT_FILE $OUTPUT_FILE | grep "Elapsed seconds:" | sed 's/Elapsed seconds: //' )"
+        OUTPUT_FILE=${FILE_BASENAME}-${SCALING_TYPE}-${VARIANT}-K${INPUT_CLUSTERS}-P${p}-R${rep}.out
+        EXEC_TIME="$(
+            env ${ENV_VARS[@]} ${PREFIX[@]} $BINARY $INPUT_CLUSTERS $INPUT_FILE $OUTPUT_FILE | \
+            grep "Elapsed seconds: " | \
+            sed 's/Elapsed seconds: //' \
+        )"
         echo -n -e "${EXEC_TIME}\t"
     done
     echo ""

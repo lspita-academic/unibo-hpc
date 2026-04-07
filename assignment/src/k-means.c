@@ -14,6 +14,7 @@
 
 #define K_MEANS_MAX_ITER 100
 #define K_MEANS_TOL 1e-5
+#define FORCE_ITERATIONS_ENV_VAR "FORCE_ITERATIONS"
 #define MAKE_MOVIE_ENV_VAR "MAKE_MOVIE"
 #define MOVIE_DIR_ENV_VAR "MOVIE_DIR"
 
@@ -46,6 +47,7 @@ KMeansArgs get_args(int argc, char* argv[]) {
         "Invalid argument n_clusters: value must be a non-negative number\n"
     );
 
+    bool force_iterations = get_env_bool(FORCE_ITERATIONS_ENV_VAR, false);
     bool make_movie = get_env_bool(MAKE_MOVIE_ENV_VAR, false);
     char* movie_dir = get_env_string(MOVIE_DIR_ENV_VAR, NULL);
 
@@ -61,6 +63,7 @@ KMeansArgs get_args(int argc, char* argv[]) {
         .output_file_path = output_file_path,
         .max_iterations = K_MEANS_MAX_ITER,
         .tolerance = K_MEANS_TOL,
+        .force_iterations = force_iterations,
         .make_movie = make_movie,
         .movie_dir = movie_dir,
     };
@@ -87,7 +90,9 @@ void print_inputs(FILE* stream, KMeansArgs* args, PointsCollection* points) {
     fprintf(stream, "Clusters (K)..... %lu\n\n", args->n_clusters);
 }
 
-ClustersCollection create_clusters(size_t n_clusters, PointsCollection* points) {
+ClustersCollection create_clusters(
+    size_t n_clusters, PointsCollection* points
+) {
     ClustersCollection clusters =
         new_clusters_collection(points, n_clusters, NULL);
     init_centroids(&clusters);
@@ -113,8 +118,13 @@ void print_iteration(FILE* stream, LoopData* loop) {
     );
 }
 
-bool continue_loop(LoopData* loop, point_distance tolerance, size_t max_iterations) {
-    return (loop->maxsqshift > tolerance * tolerance) &&
+bool continue_loop(
+    LoopData* loop,
+    point_distance tolerance,
+    size_t max_iterations,
+    bool force_iterations
+) {
+    return (force_iterations || (loop->maxsqshift > tolerance * tolerance)) &&
            (loop->iteration <= max_iterations);
 }
 

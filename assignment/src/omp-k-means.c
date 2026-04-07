@@ -153,7 +153,9 @@ int main(int argc, char* argv[]) {
                 print_iteration(stdout, &loop);
                 loop.iteration++;
             }
-        } while (continue_loop(&loop, args.tolerance, args.max_iterations));
+        } while (continue_loop(
+            &loop, args.tolerance, args.max_iterations, args.force_iterations
+        ));
     }
     free_points_collection(&new_centroids);
 

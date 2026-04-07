@@ -33,7 +33,10 @@ void update_dimensions(
     } else {
         safe_assert(
             current_dims == dims,
-            "Input file points have irregular dimensions\n"
+            "Input file points have irregular dimensions: found %lu expected "
+            "%lu\n",
+            current_dims,
+            dims
         );
     }
     points++;

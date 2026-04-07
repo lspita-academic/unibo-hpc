@@ -123,7 +123,9 @@ int main(int argc, char* argv[]) {
         update_centroids(&clusters, &new_centroids, &loop.maxsqshift);
         print_iteration(stdout, &loop);
         loop.iteration++;
-    } while (continue_loop(&loop, args.tolerance, args.max_iterations));
+    } while (continue_loop(
+        &loop, args.tolerance, args.max_iterations, args.force_iterations
+    ));
     free_points_collection(&new_centroids);
 
     finish_loop(stdout, &loop, hpc_gettime());
