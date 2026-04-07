@@ -11,7 +11,9 @@
 // hpc checks for mpi functions, so the mpi header must be included before
 // clang-format off
 #include <mpi.h>
+#define MPI_Init
 #include <hpc.h>
+#undef MPI_Init
 // clang-format on
 #include <stddef.h>
 #include <stdlib.h>
@@ -266,13 +268,13 @@ int main(int argc, char* argv[]) {
     );
 
     LoopData loop;
-    if (mpi_is_master(mpi_rank)) {
-        loop = create_loop_data(hpc_gettime());
-    }
     int continue_flag;
     PointsCollection new_centroids = new_points_collection(
         input_info.n_clusters, input_info.dimensions, NULL
     );
+    if (mpi_is_master(mpi_rank)) {
+        loop = create_loop_data(hpc_gettime());
+    }
     do {
         if (mpi_is_master(mpi_rank)) {
             reset_iteration(&loop);

@@ -111,9 +111,9 @@ int main(int argc, char* argv[]) {
 
     ClustersCollection clusters = create_clusters(args.n_clusters, &points);
 
-    LoopData loop = create_loop_data(hpc_gettime());
     PointsCollection new_centroids =
         new_points_collection(clusters.size, clusters.points->dimensions, NULL);
+    LoopData loop = create_loop_data(hpc_gettime());
     do {
         reset_iteration(&loop);
         classify_points(&clusters);
