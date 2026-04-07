@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+WORKDIR=$(echo "$(git rev-parse --show-toplevel 2>/dev/null)/assignment" || pwd)
+
 INPUT_BASE_POINTS=${1:-${INPUT_BASE_POINTS:-1}} # base problem size
 SCALING_TYPE=${2:-${SCALING_TYPE:-"strong"}} # scaling type, either "weak" or "strong"
 BIN_TYPE=${3:-${BIN_TYPE:-"serial"}} # binary type, either "serial", "omp" or "mpi". Serial is just to get the table of values for comparison.
@@ -11,9 +13,14 @@ if [ $INPUT_BASE_POINTS -le 0 ]; then
     exit 1
 fi
 
-MAX_CORES=${MAX_CORES:-$(cat /proc/cpuinfo | grep processor | wc -l)} # number of (logical) cores
-BIN_DIR=${BIN_DIR:-bin}
-SCALING_DIR=${SCALING_DIR:-scaling}
+if [[ "$BIN_TYPE" == "serial" ]]; then
+    MAX_CORES=1
+else
+    MAX_CORES=${MAX_CORES:-$(cat /proc/cpuinfo | grep processor | wc -l)} # number of (logical) cores
+fi
+
+BIN_DIR=${BIN_DIR:-$WORKDIR/bin}
+SCALING_DIR=${SCALING_DIR:-$WORKDIR/scaling}
 INPUTGEN_BIN=${INPUTGEN_BIN:-$BIN_DIR/inputgen}
 INPUTGEN_DIMS=${INPUTGEN_DIMS:-20}
 INPUTGEN_CLUSTERS=${INPUTGEN_CLUSTERS:-50}
@@ -27,7 +34,7 @@ fi
 
 mkdir -p $SCALING_DIR
 
-table_header="p"
+table_header="p\tn"
 for i in $(seq 1 $NREPS); do table_header="$table_header\tt$i"; done
 echo -e "$table_header"
 
@@ -59,6 +66,7 @@ for p in $(seq 1 $MAX_CORES); do
         $INPUTGEN_BIN $INPUT_POINTS $INPUTGEN_DIMS $INPUTGEN_CLUSTERS > $INPUT_FILE
     fi
 
+    echo -n -e "$p\t"
     echo -n -e "$INPUT_POINTS\t"
     for rep in `seq $NREPS`; do
         OUTPUT_FILE=${FILE_BASENAME}-${SCALING_TYPE}-${BIN_TYPE}-P${p}-R${rep}.out
