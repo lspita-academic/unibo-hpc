@@ -25,6 +25,7 @@ BIN_DIR?=bin
 SCRIPTS_DIR?=scripts
 INCLUDE_DIR?=include
 MOVIE_DIR?=movie
+SCALING_DIR?=scaling
 
 # scripts
 GENFRAMES_SCRIPT:=$(SCRIPTS_DIR)/generate_frames.sh
@@ -115,7 +116,7 @@ CUDA_BIN=$(call obj_to_bin,$(CUDA_OBJ))
 
 BINS:=$(SERIAL_BIN) $(OMP_BIN) $(MPI_BIN) $(CUDA_BIN)
 
-NODEPS_TARGETS=clean clean-build clean-compiledb clean-movie clean-demo
+NODEPS_TARGETS=clean clean-build clean-compiledb clean-movie clean-demo clean-scaling
 
 # targets
 
@@ -221,6 +222,10 @@ clean-demo:
 	rm -f $(DEMO_INPUT)
 	rm -f $(DEMO_OUTPUT)
 	rm -f $(DEMO_MOVIE)
+
+clean-scaling:
+	rm -f $(SCALING_DIR)/*.in
+	rm -f $(SCALING_DIR)/*.out
 
 clean: clean-build clean-compiledb clean-movie clean-demo
 

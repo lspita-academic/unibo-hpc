@@ -80,6 +80,22 @@ Parameters:
 - `DEMO_INPUTGEN_CLUSTERS`: Number of clusters to use (default: 50)
 - `DEMO_INPUT`: File to generate (default: demo.in)
 
+## Scaling
+
+To measure weak and strong scaling performances, a script is provided.
+
+```sh
+./scripts/scaling.sh <BASE_POINTS> <SCALING_TYPE> <VARIANT>
+```
+
+Parameters:
+
+- `BASE_POINTS`: Number of points to start with (required)
+- `SCALING_TYPE`: Type of scaling measurement, either "weak" or "strong" (required)
+- `VARIANT`: Variant to measure, either "serial" (for comparison only, limited to only one processor), "omp" or "mpi" (required)
+
+Other parameters can be configured using env vars, check the script for more.
+
 ## Inputgen
 
 An independent binary for input generation (provided by the professor) is also present among the other targets.
@@ -197,6 +213,7 @@ Here a complete list of parameters. If anything is missing, the [Makefile](./Mak
 - `SCRIPTS_DIR`: Directory containing extra scripts (default: scripts).
 - `INCLUDE_DIR`: Directory containing external headers (default: include).
 - `MOVIE_DIR`: Directory to store temporary movie files (default: movie).
+- `SCALING_DIR`: Directory to store temporary scaling files (default: scaling).
 
 ### Demo
 
