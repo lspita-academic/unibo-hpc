@@ -50,7 +50,12 @@ for p in $(seq 1 $MAX_UNITS); do
     FILE_BASENAME=${SCALING_DIR}/test-N${INPUT_POINTS}-D${INPUTGEN_DIMS}-C${INPUTGEN_CLUSTERS}
     INPUT_FILE=$FILE_BASENAME.in
     if [ ! -f "$INPUT_FILE" ]; then
-        $INPUTGEN_BIN $INPUT_POINTS $INPUTGEN_DIMS $INPUTGEN_CLUSTERS > $INPUT_FILE
+        $MAKE run-inputgen \
+            INPUTGEN_POINTS=$INPUT_POINTS \
+    	    INPUTGEN_DIMS=$INPUTGEN_DIMS \
+    		INPUTGEN_CLUSTERS=$INPUTGEN_CLUSTERS \
+    		INPUTGEN_OUTPUT=$INPUT_FILE \
+            1>/dev/null
     fi
 
     echo -n -e "$p\t"

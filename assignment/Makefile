@@ -247,7 +247,7 @@ compiledb-full: clean-build
 
 define make_movie_target
 ifneq ($(filter movie-$(1), $(MOVIE_TARGETS)),)
-movie-$(1): $(MOVIE_DIR)/
+movie-$(1): $(MOVIE_DIR)/ build-$(1)
 	$(MAKE) run-$(1) MAKE_MOVIE=1 && \
 	$(GENFRAMES_SCRIPT) $(MOVIE_DIR) && \
 	ffmpeg -pattern_type glob -stream_loop 5 -y -r 1 -i "$(MOVIE_DIR)/img_*.png" -vcodec mpeg4 -r 1 $(MOVIE)
@@ -261,7 +261,7 @@ $(eval $(call make_movie_target,cuda))
 
 define make_scaling_target
 ifneq ($(filter scaling-$(1), $(SCALING_TARGETS)),)
-scaling-$(1)-$(2): $(SCALING_DIR)/
+scaling-$(1)-$(2): $(SCALING_DIR)/ build-$(1) build-inputgen
 	VARIANT=$(1) \
 	SCALING_TYPE=$(2) \
 	BASE_POINTS=$(SCALING_BASE_POINTS) \
