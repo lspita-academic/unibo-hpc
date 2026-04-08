@@ -36,11 +36,10 @@ for i in $(seq 1 $NREPS); do table_header="$table_header\tt$i"; done
 echo -e "$table_header"
 
 for p in $(seq 1 $MAX_UNITS); do
-    ENV_VARS=()
+    ENV_VARS=(FORCE_ITERATIONS=true)
     case ${SCALING_TYPE} in
         weak)
             INPUT_POINTS=$(( BASE_POINTS * p ))
-            ENV_VARS+=(FORCE_ITERATIONS=true)
             ;;
         strong)
             INPUT_POINTS=$BASE_POINTS
