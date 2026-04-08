@@ -1,18 +1,26 @@
 # utils
 comma:=,
-eq:==
+space:=$(empty) $(empty)
 
 # --- parameters ---
 define make_default_extra_param
-$(1)_DEFAULT?=$(2)
 $(1)_EXTRA?=
-$(1)?=$$($(1)_DEFAULT) $$($(1)_EXTRA)
+$(1)?=$(2) $$($(1)_EXTRA)
 endef
-
 
 ## host
 CORES_SET?=
+
+# this is done here because it's used by other parameters
+# set to all cores if CORES_SET is empty
+ifeq ($(CORES_SET),)
+  NPROC:=$(shell nproc 2>/dev/null || sysctl -n hw.logicalcpu 2>/dev/null || echo 1)
+  PROCS=$(strip $(shell seq 0 $$(($(NPROC)-1))))
+  CORES_SET:=$(subst $(space),$(comma),$(PROCS))
+endif
+# get cores count
 CORES_COUNT:=$(words $(subst $(comma), ,$(CORES_SET)))
+WORK_UNITS?=$(CORES_COUNT)
 
 ## programs and params
 CC?=gcc
@@ -21,13 +29,14 @@ $(eval $(call make_default_extra_param,LDFLAGS,,))
 
 $(eval $(call make_default_extra_param,OMP_CFLAGS,-fopenmp))
 $(eval $(call make_default_extra_param,OMP_LDFLAGS,-fopenmp))
-$(eval $(call make_default_extra_param,OMP_ENV,OMP_PLACES$(eq){$(CORES_SET)}))
+OMP_PLACES?={$(CORES_SET)}
+OMP_NUM_THREADS?=$(WORK_UNITS)
 
 MPICC?=mpicc
 MPIRUN?=mpirun
 $(eval $(call make_default_extra_param,MPI_CFLAGS,,))
 $(eval $(call make_default_extra_param,MPI_LDFLAGS,,))
-$(eval $(call make_default_extra_param,MPIRUN_FLAGS,-n $(CORES_COUNT) --map-by pe-list=$(CORES_SET):oversubscribe))
+$(eval $(call make_default_extra_param,MPIRUN_FLAGS,-n $(WORK_UNITS) --oversubscribe --cpu-list $(CORES_SET)))
 
 NVCC?=nvcc
 $(eval $(call make_default_extra_param,CUDA_CFLAGS,-Wno-deprecated-gpu-targets))
@@ -71,7 +80,6 @@ OUTPUT?=$(DEMO_OUTPUT)
 MOVIE?=$(DEMO_MOVIE)
 
 # --- parameters ---
-
 
 # sources
 define make_src
@@ -203,6 +211,7 @@ run-$(1): $(2) $(INPUT)
 endif
 endef
 
+OMP_ENV=OMP_PLACES=$(OMP_PLACES) OMP_NUM_THREADS=$(OMP_NUM_THREADS)
 $(eval $(call make_run_target,serial,$(SERIAL_BIN)))
 $(eval $(call make_run_target,omp,$(OMP_BIN),$(OMP_ENV)))
 $(eval $(call make_run_target,mpi,$(MPI_BIN),$(MPIRUN) $(MPIRUN_FLAGS)))
