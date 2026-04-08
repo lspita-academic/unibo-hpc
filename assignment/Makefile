@@ -3,7 +3,8 @@ comma:=,
 space:=$(empty) $(empty)
 
 # --- parameters ---
-define make_default_extra_param
+
+define list_with_extra
 $(1)_EXTRA?=
 $(1)?=$(2) $$($(1)_EXTRA)
 endef
@@ -22,25 +23,25 @@ endif
 CORES_COUNT:=$(words $(subst $(comma), ,$(CORES_SET)))
 WORK_UNITS?=$(CORES_COUNT)
 
-## programs and params
+## programs and options
 CC?=gcc
-$(eval $(call make_default_extra_param,CFLAGS,-std=c99 -Wall -Wpedantic))
-$(eval $(call make_default_extra_param,LDFLAGS,,))
+$(eval $(call list_with_extra,CFLAGS,-std=c99 -Wall -Wpedantic))
+$(eval $(call list_with_extra,LDFLAGS,,))
 
-$(eval $(call make_default_extra_param,OMP_CFLAGS,-fopenmp))
-$(eval $(call make_default_extra_param,OMP_LDFLAGS,-fopenmp))
+$(eval $(call list_with_extra,OMP_CFLAGS,-fopenmp))
+$(eval $(call list_with_extra,OMP_LDFLAGS,-fopenmp))
 OMP_PLACES?={$(CORES_SET)}
 OMP_NUM_THREADS?=$(WORK_UNITS)
 
 MPICC?=mpicc
 MPIRUN?=mpirun
-$(eval $(call make_default_extra_param,MPI_CFLAGS,,))
-$(eval $(call make_default_extra_param,MPI_LDFLAGS,,))
-$(eval $(call make_default_extra_param,MPIRUN_FLAGS,-n $(WORK_UNITS) --oversubscribe --cpu-list $(CORES_SET)))
+$(eval $(call list_with_extra,MPI_CFLAGS,,))
+$(eval $(call list_with_extra,MPI_LDFLAGS,,))
+$(eval $(call list_with_extra,MPIRUN_FLAGS,-n $(WORK_UNITS) --oversubscribe --cpu-list $(CORES_SET)))
 
 NVCC?=nvcc
-$(eval $(call make_default_extra_param,CUDA_CFLAGS,-Wno-deprecated-gpu-targets))
-$(eval $(call make_default_extra_param,CUDA_LDFLAGS,,))
+$(eval $(call list_with_extra,CUDA_CFLAGS,-Wno-deprecated-gpu-targets))
+$(eval $(call list_with_extra,CUDA_LDFLAGS,,))
 
 BEAR?=bear
 MAKE?=make
@@ -50,28 +51,39 @@ SRC_DIR?=src
 BUILD_DIR?=build
 BIN_DIR?=bin
 INCLUDE_DIR?=include
+SCRIPTS_DIR?=scripts
 
 ## movie
 MAKE_MOVIE?=0
 MOVIE_DIR?=movie
-
-## scaling
-SCALING_DIR?=scaling
-
-## scripts
-SCRIPTS_DIR?=scripts
 GENFRAMES_SCRIPT?=$(SCRIPTS_DIR)/generate_frames.sh
-INPUTGEN_MAIN?=$(SCRIPTS_DIR)/inputgen.c
-INPUTGEN_FLAGS?=
-INPUTGEN_BIN?=$(BIN_DIR)/inputgen
 
 ## demo
 DEMO_CLUSTERS?=5
 DEMO_INPUTGEN_POINTS?=1000
+DEMO_INPUTGEN_DIMS?=2
 DEMO_INPUTGEN_CLUSTERS?=50
 DEMO_INPUT?=demo.in
 DEMO_OUTPUT?=demo.out
 DEMO_MOVIE?=demo.mp4
+
+## scaling
+SCALING_DIR?=scaling
+SCALING_SCRIPT?=$(SCRIPTS_DIR)/scaling.sh
+SCALING_BASE_POINTS?=20000
+SCALING_INPUT_CLUSTERS?=10
+SCALING_INPUTGEN_DIMS?=20
+SCALING_INPUTGEN_CLUSTERS?=200
+SCALING_NREPS?=5
+SCALING_MAX_UNITS?=$(WORK_UNITS)
+
+## inputgen
+INPUTGEN_MAIN?=$(SCRIPTS_DIR)/inputgen.c
+INPUTGEN_BIN?=$(BIN_DIR)/inputgen
+INPUTGEN_POINTS?=$(DEMO_INPUTGEN_POINTS)
+INPUTGEN_DIMS?=$(DEMO_INPUTGEN_DIMS)
+INPUTGEN_CLUSTERS?=$(DEMO_INPUTGEN_CLUSTERS)
+INPUTGEN_OUTPUT?=$(DEMO_INPUT)
 
 ## arguments
 CLUSTERS?=$(DEMO_CLUSTERS)
@@ -158,32 +170,38 @@ NODEPS_TARGETS=clean clean-build clean-compiledb clean-movie clean-demo clean-sc
 BUILD_TARGETS:=
 RUN_TARGETS:=
 MOVIE_TARGETS:=
+SCALING_TARGETS:=
 ifneq ($(wildcard $(SERIAL_MAIN)),)
 BUILD_TARGETS+=build-serial
 RUN_TARGETS+=run-serial
 MOVIE_TARGETS+=movie-serial
+SCALING_TARGETS+=scaling-serial
 endif
 ifneq ($(wildcard $(OMP_MAIN)),)
 BUILD_TARGETS+=build-omp
 RUN_TARGETS+=run-omp
 MOVIE_TARGETS+=movie-omp
+SCALING_TARGETS+=scaling-omp
 endif
 ifneq ($(wildcard $(MPI_MAIN)),)
 BUILD_TARGETS+=build-mpi
 RUN_TARGETS+=run-mpi
 MOVIE_TARGETS+=movie-mpi
+SCALING_TARGETS+=scaling-mpi
 endif
 ifneq ($(wildcard $(CUDA_MAIN)),)
 BUILD_TARGETS+=build-cuda
 RUN_TARGETS+=run-cuda
 MOVIE_TARGETS+=movie-cuda
+# weak and strong scaling are not for cuda
 endif
 
 .PHONY: all \
 	$(NODEPS_TARGETS) \
 	build build-inputgen $(BUILD_TARGETS) \
-	$(RUN_TARGETS) \
+	run-inputgen $(RUN_TARGETS) \
 	$(MOVIE_TARGETS) \
+	$(SCALING_TARGETS) \
 	demo-input \
 	compiledb compiledb-full \
 	sium
@@ -202,6 +220,7 @@ $(eval $(call make_build_target,serial,$(SERIAL_BIN)))
 $(eval $(call make_build_target,omp,$(OMP_BIN)))
 $(eval $(call make_build_target,mpi,$(MPI_BIN)))
 $(eval $(call make_build_target,cuda,$(CUDA_BIN)))
+
 build-inputgen: $(INPUTGEN_BIN)
 
 define make_run_target
@@ -217,6 +236,9 @@ $(eval $(call make_run_target,omp,$(OMP_BIN),$(OMP_ENV)))
 $(eval $(call make_run_target,mpi,$(MPI_BIN),$(MPIRUN) $(MPIRUN_FLAGS)))
 $(eval $(call make_run_target,cuda,$(CUDA_BIN)))
 
+run-inputgen: $(INPUTGEN_BIN)
+	$(INPUTGEN_BIN) $(INPUTGEN_POINTS) $(INPUTGEN_DIMS) $(INPUTGEN_CLUSTERS) > $(INPUTGEN_OUTPUT)
+
 compiledb:
 	$(BEAR) --append -- $(MAKE) build
 
@@ -226,7 +248,7 @@ compiledb-full: clean-build
 define make_movie_target
 ifneq ($(filter movie-$(1), $(MOVIE_TARGETS)),)
 movie-$(1): $(MOVIE_DIR)/
-	MAKE_MOVIE=1 run-$(1) && \
+	$(MAKE) run-$(1) MAKE_MOVIE=1 && \
 	$(GENFRAMES_SCRIPT) $(MOVIE_DIR) && \
 	ffmpeg -pattern_type glob -stream_loop 5 -y -r 1 -i "$(MOVIE_DIR)/img_*.png" -vcodec mpeg4 -r 1 $(MOVIE)
 endif
@@ -236,6 +258,30 @@ $(eval $(call make_movie_target,serial))
 $(eval $(call make_movie_target,omp))
 $(eval $(call make_movie_target,mpi))
 $(eval $(call make_movie_target,cuda))
+
+define make_scaling_target
+ifneq ($(filter scaling-$(1), $(SCALING_TARGETS)),)
+scaling-$(1)-$(2): $(SCALING_DIR)/
+	VARIANT=$(1) \
+	SCALING_TYPE=$(2) \
+	BASE_POINTS=$(SCALING_BASE_POINTS) \
+	INPUT_CLUSTERS=$(SCALING_INPUT_CLUSTERS) \
+	INPUTGEN_DIMS=$(SCALING_INPUTGEN_DIMS) \
+	INPUTGEN_CLUSTERS=$(SCALING_INPUTGEN_CLUSTERS) \
+	SCALING_DIR=$(SCALING_DIR) \
+	MAKE=$(MAKE) \
+	NREPS=$(SCALING_NREPS) \
+	MAX_UNITS=$(SCALING_MAX_UNITS) \
+	$(SCALING_SCRIPT)
+endif
+endef
+
+$(eval $(call make_scaling_target,serial,weak))
+$(eval $(call make_scaling_target,serial,strong))
+$(eval $(call make_scaling_target,omp,weak))
+$(eval $(call make_scaling_target,omp,strong))
+$(eval $(call make_scaling_target,mpi,weak))
+$(eval $(call make_scaling_target,mpi,strong))
 
 clean-build:
 	rm -f $(DEPS)
@@ -274,8 +320,12 @@ $(BUILD_DIR)/ $(BIN_DIR)/ $(MOVIE_DIR)/ $(TESTS_DIR)/:
 	mkdir -p $@
 
 # create demo files
-$(DEMO_INPUT): $(INPUTGEN_BIN)
-	$(INPUTGEN_BIN) $(DEMO_INPUTGEN_POINTS) 2 $(DEMO_INPUTGEN_CLUSTERS) > $@
+$(DEMO_INPUT):
+	$(MAKE) run-inputgen \
+	    INPUTGEN_POINTS=$(DEMO_INPUTGEN_POINTS) \
+	    INPUTGEN_DIMS=$(DEMO_INPUTGEN_DIMS) \
+		INPUTGEN_CLUSTERS=$(DEMO_INPUTGEN_CLUSTERS) \
+		INPUTGEN_OUTPUT=$(DEMO_INPUT)
 
 # override compilers and flags
 SERIAL_TARGETS:=$(SERIAL_BIN) $(SERIAL_SRCS) $(SERIAL_OBJS) $(SERIAL_DEPS)
