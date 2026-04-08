@@ -155,10 +155,10 @@ define obj_to_bin
 $(1:$(BUILD_DIR)/%.o=$(BIN_DIR)/%)
 endef
 
-SERIAL_BIN=$(call obj_to_bin,$(SERIAL_OBJ))
-OMP_BIN=$(call obj_to_bin,$(OMP_OBJ))
-MPI_BIN=$(call obj_to_bin,$(MPI_OBJ))
-CUDA_BIN=$(call obj_to_bin,$(CUDA_OBJ))
+SERIAL_BIN:=$(call obj_to_bin,$(SERIAL_OBJ))
+OMP_BIN:=$(call obj_to_bin,$(OMP_OBJ))
+MPI_BIN:=$(call obj_to_bin,$(MPI_OBJ))
+CUDA_BIN:=$(call obj_to_bin,$(CUDA_OBJ))
 
 BINS:=$(SERIAL_BIN) $(OMP_BIN) $(MPI_BIN) $(CUDA_BIN)
 
@@ -230,7 +230,7 @@ run-$(1): $(2) $(INPUT)
 endif
 endef
 
-OMP_ENV=OMP_PLACES=$(OMP_PLACES) OMP_NUM_THREADS=$(OMP_NUM_THREADS)
+OMP_ENV:=OMP_PLACES=$(OMP_PLACES) OMP_NUM_THREADS=$(OMP_NUM_THREADS)
 $(eval $(call make_run_target,serial,$(SERIAL_BIN)))
 $(eval $(call make_run_target,omp,$(OMP_BIN),$(OMP_ENV)))
 $(eval $(call make_run_target,mpi,$(MPI_BIN),$(MPIRUN) $(MPIRUN_FLAGS)))
