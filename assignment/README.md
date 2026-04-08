@@ -96,10 +96,10 @@ make scaling-<variant>-<type>
 Parameters:
 
 - `<type>`: Scaling type, either weak or strong.
-- `SCALING_BASE_POINTS`: Starting input points (default: 20000).
+- `SCALING_BASE_POINTS`: Starting input points (default: 10000).
 - `SCALING_INPUT_CLUSTERS`: Number of clusters (default: 10).
 - `SCALING_INPUTGEN_DIMS`: Number of dimensions for each point (default: 20).
-- `SCALING_INPUTGEN_CLUSTERS`: Number of clusters to use for input generation (default: 200).
+- `SCALING_INPUTGEN_CLUSTERS`: Number of clusters to use for input generation (default: 100).
 - `SCALING_NREPS`: Number of iterations to do on each round (default: 5).
 - `SCALING_MAX_UNITS`: Max number of work units to use (default: $WORK_UNITS).
 
@@ -267,10 +267,10 @@ Here a complete list of parameters. If anything is missing, the [Makefile](./Mak
 
 - `SCALING_DIR`: Directory to store temporary scaling files (default: scaling).
 - `SCALING_SCRIPT`: Script to use for scaling benchmarking (default: $SCRIPTS_DIR/scaling.sh)
-- `SCALING_BASE_POINTS`: Starting input points (default: 20000).
+- `SCALING_BASE_POINTS`: Starting input points (default: 10000).
 - `SCALING_INPUT_CLUSTERS`: Number of clusters (default: 10).
 - `SCALING_INPUTGEN_DIMS`: Number of dimensions for each point (default: 20).
-- `SCALING_INPUTGEN_CLUSTERS`: Number of clusters to use for input generation (default: 200).
+- `SCALING_INPUTGEN_CLUSTERS`: Number of clusters to use for input generation (default: 100).
 - `SCALING_NREPS`: Number of iterations to do on each round (default: 5).
 - `SCALING_MAX_UNITS`: Max number of work units to use (default: $WORK_UNITS).
 
