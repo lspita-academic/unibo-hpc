@@ -7,6 +7,7 @@ movie*/
 *.mp4
 
 # test files
+*.log
 *.out
 *.in
 
