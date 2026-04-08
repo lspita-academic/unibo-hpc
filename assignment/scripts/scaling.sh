@@ -17,9 +17,9 @@ if [ $INPUT_BASE_POINTS -le 0 ]; then
 fi
 
 if [[ "$VARIANT" == "serial" ]]; then
-    MAX_CORES=1
+    MAX_UNITS=1
 else
-    MAX_CORES=${MAX_CORES:-$(cat /proc/cpuinfo | grep processor | wc -l)} # number of (logical) cores
+    MAX_UNITS=${MAX_UNITS:-$(nproc 2>/dev/null || sysctl -n hw.logicalcpu 2>/dev/null || echo 1)}
 fi
 
 INPUT_CLUSTERS=${INPUT_CLUSTERS:-5}
@@ -29,22 +29,16 @@ SCALING_DIR=${SCALING_DIR:-$WORKDIR/scaling}
 INPUTGEN_BIN=${INPUTGEN_BIN:-$BIN_DIR/inputgen}
 INPUTGEN_DIMS=${INPUTGEN_DIMS:-20}
 INPUTGEN_CLUSTERS=${INPUTGEN_CLUSTERS:-50}
-BINARY=${BINARY:-${BIN_DIR}/${VARIANT}-k-means}
 
-if [ ! -f "$BINARY" ] || [ ! -f "$INPUTGEN_BIN" ]; then
-    echo "$BINARY not found" 1>&2
-    exit 1
-fi
-
+make build-${VARIANT}
 mkdir -p $SCALING_DIR
 
 table_header="p\tn"
 for i in $(seq 1 $NREPS); do table_header="$table_header\tt$i"; done
 echo -e "$table_header"
 
-for p in $(seq 1 $MAX_CORES); do
+for p in $(seq 1 $MAX_UNITS); do
     ENV_VARS=()
-    PREFIX=()
     case ${SCALING_TYPE} in
         weak)
             INPUT_POINTS=$(( INPUT_BASE_POINTS * p ))
@@ -52,17 +46,6 @@ for p in $(seq 1 $MAX_CORES); do
             ;;
         strong)
             INPUT_POINTS=$INPUT_BASE_POINTS
-            ;;
-    esac
-
-    case ${VARIANT} in
-        omp)
-            ENV_VARS+=(OMP_NUM_THREADS=$p)
-            ;;
-        mpi)
-            PREFIX=(mpirun -n $p)
-            ;;
-        serial)
             ;;
     esac
 
@@ -77,7 +60,7 @@ for p in $(seq 1 $MAX_CORES); do
     for rep in `seq $NREPS`; do
         OUTPUT_FILE=${FILE_BASENAME}-${SCALING_TYPE}-${VARIANT}-K${INPUT_CLUSTERS}-P${p}-R${rep}.out
         EXEC_TIME="$(
-            env ${ENV_VARS[@]} ${PREFIX[@]} $BINARY $INPUT_CLUSTERS $INPUT_FILE $OUTPUT_FILE | \
+            env ${ENV_VARS[@]} make run-$VARIANT WORK_UNITS=$p CLUSTERS=$INPUT_CLUSTERS INPUT=$INPUT_FILE OUTPUT=$OUTPUT_FILE | \
             grep "Elapsed seconds: " | \
             sed 's/Elapsed seconds: //' \
         )"
