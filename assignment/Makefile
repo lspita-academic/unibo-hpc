@@ -1,39 +1,62 @@
-# programs and flags
+# utils
+comma:=,
+eq:==
+
+# --- parameters ---
+define make_default_extra_param
+$(1)_DEFAULT?=$(2)
+$(1)_EXTRA?=
+$(1)?=$$($(1)_DEFAULT) $$($(1)_EXTRA)
+endef
+
+
+## host
+CORES_SET?=
+CORES_COUNT:=$(words $(subst $(comma), ,$(CORES_SET)))
+
+## programs and params
 CC?=gcc
+$(eval $(call make_default_extra_param,CFLAGS,-std=c99 -Wall -Wpedantic))
+$(eval $(call make_default_extra_param,LDFLAGS,,))
+
+$(eval $(call make_default_extra_param,OMP_CFLAGS,-fopenmp))
+$(eval $(call make_default_extra_param,OMP_LDFLAGS,-fopenmp))
+$(eval $(call make_default_extra_param,OMP_ENV,OMP_PLACES$(eq){$(CORES_SET)}))
+
 MPICC?=mpicc
-NVCC?=nvcc
-BEAR?=bear
-
-CFLAGS+=-std=c99 -Wall -Wpedantic
-LDFLAGS+=
-OMP_CFLAGS+=-fopenmp
-OMP_LDFLAGS+=-fopenmp
-MPI_CFLAGS+=
-MPI_LDFLAGS+=
-CUDA_CFLAGS+=-Wno-deprecated-gpu-targets
-CUDA_LDFLAGS+=
-
 MPIRUN?=mpirun
-MPIRUN_FLAGS+=
+$(eval $(call make_default_extra_param,MPI_CFLAGS,,))
+$(eval $(call make_default_extra_param,MPI_LDFLAGS,,))
+$(eval $(call make_default_extra_param,MPIRUN_FLAGS,-n $(CORES_COUNT) --map-by pe-list=$(CORES_SET):oversubscribe))
 
+NVCC?=nvcc
+$(eval $(call make_default_extra_param,CUDA_CFLAGS,-Wno-deprecated-gpu-targets))
+$(eval $(call make_default_extra_param,CUDA_LDFLAGS,,))
+
+BEAR?=bear
 MAKE?=make
 
-# directories
+## project
 SRC_DIR?=src
 BUILD_DIR?=build
 BIN_DIR?=bin
-SCRIPTS_DIR?=scripts
 INCLUDE_DIR?=include
+
+## movie
+MAKE_MOVIE?=0
 MOVIE_DIR?=movie
+
+## scaling
 SCALING_DIR?=scaling
 
-# scripts
-GENFRAMES_SCRIPT:=$(SCRIPTS_DIR)/generate_frames.sh
-INPUTGEN_MAIN:=$(SCRIPTS_DIR)/inputgen.c
-INPUTGEN_FLAGS:=
-INPUTGEN_BIN:=$(BIN_DIR)/inputgen
+## scripts
+SCRIPTS_DIR?=scripts
+GENFRAMES_SCRIPT?=$(SCRIPTS_DIR)/generate_frames.sh
+INPUTGEN_MAIN?=$(SCRIPTS_DIR)/inputgen.c
+INPUTGEN_FLAGS?=
+INPUTGEN_BIN?=$(BIN_DIR)/inputgen
 
-# demo
+## demo
 DEMO_CLUSTERS?=5
 DEMO_INPUTGEN_POINTS?=1000
 DEMO_INPUTGEN_CLUSTERS?=50
@@ -41,11 +64,14 @@ DEMO_INPUT?=demo.in
 DEMO_OUTPUT?=demo.out
 DEMO_MOVIE?=demo.mp4
 
-# arguments
+## arguments
 CLUSTERS?=$(DEMO_CLUSTERS)
 INPUT?=$(DEMO_INPUT)
 OUTPUT?=$(DEMO_OUTPUT)
 MOVIE?=$(DEMO_MOVIE)
+
+# --- parameters ---
+
 
 # sources
 define make_src
@@ -173,12 +199,12 @@ build-inputgen: $(INPUTGEN_BIN)
 define make_run_target
 ifneq ($(filter run-$(1), $(RUN_TARGETS)),)
 run-$(1): $(2) $(INPUT)
-	$(3) $(2) $(CLUSTERS) $(INPUT) $(OUTPUT)
+	MAKE_MOVIE=$(MAKE_MOVIE) MOVIE_DIR=$(MOVIE_DIR) $(3) $(2) $(CLUSTERS) $(INPUT) $(OUTPUT)
 endif
 endef
 
 $(eval $(call make_run_target,serial,$(SERIAL_BIN)))
-$(eval $(call make_run_target,omp,$(OMP_BIN)))
+$(eval $(call make_run_target,omp,$(OMP_BIN),$(OMP_ENV)))
 $(eval $(call make_run_target,mpi,$(MPI_BIN),$(MPIRUN) $(MPIRUN_FLAGS)))
 $(eval $(call make_run_target,cuda,$(CUDA_BIN)))
 
@@ -191,7 +217,7 @@ compiledb-full: clean-build
 define make_movie_target
 ifneq ($(filter movie-$(1), $(MOVIE_TARGETS)),)
 movie-$(1): $(MOVIE_DIR)/
-	MAKE_MOVIE=1 MOVIE_DIR=$(MOVIE_DIR) $(MAKE) run-$(1) && \
+	MAKE_MOVIE=1 run-$(1) && \
 	$(GENFRAMES_SCRIPT) $(MOVIE_DIR) && \
 	ffmpeg -pattern_type glob -stream_loop 5 -y -r 1 -i "$(MOVIE_DIR)/img_*.png" -vcodec mpeg4 -r 1 $(MOVIE)
 endif
@@ -227,7 +253,7 @@ clean-scaling:
 	rm -f $(SCALING_DIR)/*.in
 	rm -f $(SCALING_DIR)/*.out
 
-clean: clean-build clean-compiledb clean-movie clean-demo
+clean: clean-build clean-compiledb clean-movie clean-demo clean-scaling
 
 demo-input: $(DEMO_INPUT)
 
