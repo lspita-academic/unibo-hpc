@@ -25,6 +25,9 @@ void classify_points(ClustersCollection* clusters) {
     // cannot be used
     size_t* counts = clusters->counts;
 
+// The number of clusters is a lot smaller than the number of points, so the
+// overhead to split the work between the openmp threads makes the program
+// slower than the serial version for most of the cases.
 #pragma omp single
     for (size_t i = 0; i < clusters->size; i++) {
         counts[i] = 0;
