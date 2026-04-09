@@ -25,7 +25,7 @@ void classify_points(ClustersCollection* clusters) {
     // cannot be used
     size_t* counts = clusters->counts;
 
-#pragma omp for schedule(static)
+#pragma omp single
     for (size_t i = 0; i < clusters->size; i++) {
         counts[i] = 0;
     }
@@ -65,7 +65,7 @@ void update_centroids(
     point_coord* new_centroids_data = new_centroids->data;
 
 // initialize centroids to zero
-#pragma omp for schedule(static)
+#pragma omp single
     for (size_t i = 0; i < clusters->size; i++) {
         size_t idx = flat_index(i, 0, dims);
         zero_point(&new_centroids_data[idx], dims);
@@ -82,7 +82,7 @@ void update_centroids(
         );
     }
 
-#pragma omp for schedule(static) reduction(max : out_maxsqshift[ : 1])
+#pragma omp single
     for (size_t i = 0; i < clusters->size; i++) {
         size_t idx = flat_index(i, 0, dims);
         if (clusters->counts[i] == 0) {
