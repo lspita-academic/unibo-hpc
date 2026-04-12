@@ -204,8 +204,7 @@ endif
 	$(MOVIE_TARGETS) \
 	$(SCALING_TARGETS) \
 	demo-input \
-	compiledb compiledb-full \
-	sium
+	compiledb compiledb-full
 
 all: build
 
