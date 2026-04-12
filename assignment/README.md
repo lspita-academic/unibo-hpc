@@ -223,7 +223,7 @@ Here a complete list of parameters. If anything is missing, the [Makefile](./Mak
 - `MPIRUN`: Wrapper to use to run MPI binaries (default: mpirun).
 - `MPI_CFLAGS/MPI_CFLAGS_EXTRA`: Flags to add when compiling MPI sources (default: none).
 - `MPI_LDFLAGS/MPI_LDFLAGS_EXTRA`: Flags to add when linking MPI sources (default: none).
-- `MPIRUN_FLAGS/MPIRUN_FLAGS_EXTRA`: Flags to add to the wrapper when running MPI binaries (default: -n $WORK_UNITS --oversubscribe --cpu-list $CORES_SET).
+- `MPIRUN_FLAGS/MPIRUN_FLAGS_EXTRA`: Flags to add to the wrapper when running MPI binaries (default: -n $WORK_UNITS \--oversubscribe \--cpu-list $CORES_SET).
 - `NVCC`: Compiler for CUDA sources (default: nvcc).
 - `CUDA_CFLAGS/CUDA_CFLAGS_EXTRA`: Flags to add when compiling CUDA sources (default: -Wno-deprecated-gpu-targets).
 - `CUDA_LDFLAGS/CUDA_LDFLAGS_EXTRA`: Flags to add when linking CUDA sources (default: none).
