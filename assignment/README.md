@@ -3,13 +3,13 @@
 This repository contains the source code for the final project of the HPC 2025/26 course.
 
 > [!IMPORTANT]
-> Even if the makefile specification can handle also CUDA, only the OpenMP and MPI variants are implemented, as requested by the assignment.
+> Even if the makefile specification can handle CUDA, only the OpenMP and MPI variants are implemented, as requested by the assignment.
 
-A serial version different from the one provided from the professor is also implemented, because I wanted to structure and modularize the code my way. The core logic behind is still the same.
+The serial version provided by the professor was not used, instead it was reimplemented by maintaining the same core structure while making the code more reusable also by the other implementations.
 
 > [!IMPORTANT]
 > The term "variant" refers to the different implementations of the algorithms: serial, omp, mpi or cuda.
-> The make targets for a specific variant exist only if the corresponding main source file is present, that is
+> The make targets for each specific variant exist only if the corresponding main source file is present, that is
 >
 > - `serial`: `src/serial-k-means.c`
 > - `omp`: `src/omp-k-means.c`
@@ -21,10 +21,20 @@ A serial version different from the one provided from the professor is also impl
 ### Make
 
 ```sh
-make build # build everything. This is also the default target run with just `make`
+make build # build everything. This is the default target.
 # or
 make build-<variant> # build a specific variant of the program.
 ```
+
+> [!IMPORTANT]
+> Each variant compiles with its specific source files:
+>
+> - `serial-*.c`: Sources included only in the serial variant.
+> - `omp-*.c`: Sources that use OpenMP, included only in the omp variant.
+> - `mpi-*.c`: Sources that use MPI, included only in the mpi variant.
+> - `cuda-*.cu`: Sources that use CUDA, included only in the cuda variant.
+>
+> All other sources are considered standard C with no special requirements and are shared between all variants.
 
 ## Run
 
@@ -42,7 +52,7 @@ Parameters:
 
 > [!TIP]
 > The `run` targets automatically build all the necessary files they need, so it's not required to run the corresponding `build` target before.
-> Moreover, since the demo input can be auto generated, they are effective zero-configuration targets to test the different implementations.
+> Moreover, since the demo input can be auto generated, they are an effective way to test the algorithm with zero configuration.
 
 ### Manual
 
@@ -78,6 +88,7 @@ make demo-input
 Parameters:
 
 - `DEMO_INPUTGEN_POINTS`: Number of points to use (default: 20)
+- `DEMO_INPUTGEN_DIMS`: Number of dimensions for each point (default: 2)
 - `DEMO_INPUTGEN_CLUSTERS`: Number of clusters to use (default: 50)
 - `DEMO_INPUT`: File to generate (default: demo.in)
 
@@ -189,20 +200,10 @@ CLUSTERS=... make run-omp # using environment variables
 make run-omp CLUSTERS=... # providing them to the target manually
 ```
 
-Here a complete list of parameters. If anything is missing, the [Makefile](./Makefile) can always be consulted.
-
-> [!IMPORTANT]
-> The correct compilers and flags to use are selected based on the name of the files.
->
-> - `serial-`: Sources that should be included only in the serial variant.
-> - `omp-`: Sources that use OpenMP, included only in the OpenMP variant.
-> - `mpi-`: Sources that use MPI, included only in the MPI variant.
-> - `cuda-`: Sources that use CUDA, included only in the CUDA variant. THE EXTENSION `.cu` IS NOT SUFFICIENT, CUDA SOURCES MUST START WITH THIS PREFIX TO USE THE CORRECT COMPILER.
->
-> All other sources are considered standard C with no special requirements and are shared between all variants.
-
 > [!NOTE]
-> When a parameter has an "EXTRA" equivalent, it means it is a list where you can add extra values on top of the default ones by setting the corresponding extras variable.
+> When a parameter has an "EXTRA" equivalent, it means it is a list where you can add extra values on top of the default ones by setting the corresponding extra variable.
+
+Here a complete list of parameters. If anything is missing, the [Makefile](./Makefile) can always be consulted.
 
 ### Host
 

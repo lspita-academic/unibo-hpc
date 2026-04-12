@@ -108,7 +108,7 @@ MAIN_SRCS:=$(SERIAL_MAIN) $(OMP_MAIN) $(MPI_MAIN) $(CUDA_MAIN)
 SERIAL_SRCS:=$(call make_src,serial-*.c)
 OMP_SRCS:=$(call make_src,omp-*.c)
 MPI_SRCS:=$(call make_src,mpi-*.c)
-CUDA_SRCS:=$(wildcard $(call make_src,cuda-*.c) $(call make_src,cuda-*.cu))
+CUDA_SRCS:=$(wildcard $(call $(call make_src,cuda-*.cu))
 COMMON_SRCS:=$(filter-out $(MAIN_SRCS) $(SERIAL_SRCS) $(OMP_SRCS) $(MPI_SRCS) $(CUDA_SRCS),$(call make_src,*.c))
 
 SRCS:=$(sort $(MAIN_SRCS) $(SERIAL_SRCS) $(OMP_SRCS) $(MPI_SRCS) $(CUDA_SRCS) $(COMMON_SRCS))
