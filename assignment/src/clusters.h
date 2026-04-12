@@ -12,9 +12,7 @@
  * The `counts` array stores the number of points in each cluster.
  */
 typedef struct ClustersCollection {
-    PointsCollection* points;
     PointsCollection centroids;
-    size_t size;
     size_t* cluster_of;
     size_t* counts;
 } ClustersCollection;
@@ -42,6 +40,6 @@ void print_clusters_collection(FILE* stream, ClustersCollection* clusters);
  * The centroids are initialized randomly using Knuths' algorithm (as reported
  * in J. Bentley, "Programming Pearls", 2nd ed., Addison-Wesley, 2000, p. 126).
  */
-void init_centroids(ClustersCollection* clusters);
+void init_centroids(ClustersCollection* clusters, PointsCollection* points);
 
 #endif  // CLUSTERS_H

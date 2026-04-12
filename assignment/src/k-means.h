@@ -81,6 +81,8 @@ double finish_loop(FILE* stream, LoopData* loop, double end_time);
 /**
  * Write algorithm results to the output file.
  */
-void write_output_file(KMeansArgs* args, ClustersCollection* clusters);
+void write_output_file(
+    KMeansArgs* args, ClustersCollection* clusters, PointsCollection* points
+);
 
 #endif  // K_MEANS_H

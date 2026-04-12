@@ -13,6 +13,11 @@
 /**
  * Save iteration data for movie generation.
  */
-void save_movie_iteration(char* dir, ClustersCollection* clusters, size_t iter);
+void save_movie_iteration(
+    char* dir,
+    size_t iter,
+    ClustersCollection* clusters,
+    PointsCollection* points
+);
 
 #endif  // MOVIE_H

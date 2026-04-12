@@ -28,25 +28,25 @@
 #include "points.h"
 #include "random.h"
 
-void classify_points(ClustersCollection* clusters) {
-    size_t dims = clusters->points->dimensions;
+void classify_points(ClustersCollection* clusters, PointsCollection* points) {
+    size_t dims = points->dimensions;
+    size_t n_points = points->size;
+    size_t n_centroids = clusters->centroids.size;
 
-    for (size_t i = 0; i < clusters->size; i++) {
+    for (size_t i = 0; i < n_centroids; i++) {
         clusters->counts[i] = 0;
     }
 
-    for (size_t i = 0; i < clusters->points->size; i++) {
+    for (size_t i = 0; i < n_points; i++) {
         // index and squared distance of the nearest centroid
-        size_t nearest = clusters->size;
+        size_t nearest = n_centroids;
         point_coord mindist = POINT_COORD_MAX;
-        for (size_t j = 0; j < clusters->size; j++) {
+        for (size_t j = 0; j < n_centroids; j++) {
             size_t idx = flat_index(i, 0, dims);
             size_t jdx = flat_index(j, 0, dims);
 
             point_coord dist = points_distance(
-                &clusters->points->data[idx],
-                &clusters->centroids.data[jdx],
-                dims
+                &points->data[idx], &clusters->centroids.data[jdx], dims
             );
             if (dist < mindist) {
                 mindist = dist;
@@ -64,27 +64,26 @@ void update_centroids(
     int mpi_rank,
     ClustersCollection* master_clusters,
     ClustersCollection* clusters,
+    PointsCollection* points,
     PointsCollection* new_centroids,
     point_distance* out_maxsqshift
 ) {
-    size_t dims = clusters->points->dimensions;
+    size_t dims = points->dimensions;
+    size_t n_points = points->size;
+    size_t n_centroids = clusters->centroids.size;
 
     // initialize centroids to zero
-    for (size_t i = 0; i < clusters->size; i++) {
+    for (size_t i = 0; i < n_centroids; i++) {
         size_t idx = flat_index(i, 0, dims);
         zero_point(&new_centroids->data[idx], dims);
     }
 
     // sum all points in their respective cluster centroid
-    for (size_t i = 0; i < clusters->points->size; i++) {
+    for (size_t i = 0; i < n_points; i++) {
         size_t idx = flat_index(i, 0, dims);
         size_t cluster_idx = flat_index(clusters->cluster_of[i], 0, dims);
 
-        points_add(
-            &new_centroids->data[cluster_idx],
-            &clusters->points->data[idx],
-            dims
-        );
+        points_add(&new_centroids->data[cluster_idx], &points->data[idx], dims);
     }
 
     /**
@@ -102,7 +101,7 @@ void update_centroids(
     MPI_Reduce(
         mpi_is_master(mpi_rank) ? MPI_IN_PLACE : new_centroids->data,
         new_centroids->data,
-        clusters->centroids.size * dims,
+        n_centroids * dims,
         MPI_POINT_COORD,
         MPI_SUM,
         MPI_MASTER_RANK,
@@ -116,7 +115,7 @@ void update_centroids(
         return;
     }
 
-    for (size_t i = 0; i < master_clusters->size; i++) {
+    for (size_t i = 0; i < n_centroids; i++) {
         size_t idx = flat_index(i, 0, dims);
         if (master_clusters->counts[i] == 0) {
             // cluster is empty, we simply copy the old centroid to the new one
@@ -157,7 +156,7 @@ void update_centroids(
 typedef struct InputInfo {
     size_t total_points;
     size_t dimensions;
-    size_t n_clusters;
+    size_t n_centroids;
 } InputInfo;
 
 MPI_Datatype mpi_input_info_type(void) {
@@ -170,7 +169,7 @@ MPI_Datatype mpi_input_info_type(void) {
     MPI_Aint displacements[] = {
         offsetof(InputInfo, total_points),
         offsetof(InputInfo, dimensions),
-        offsetof(InputInfo, n_clusters)
+        offsetof(InputInfo, n_centroids)
     };
     MPI_Datatype types[] = {MPI_SIZE_T, MPI_SIZE_T, MPI_SIZE_T};
 
@@ -207,7 +206,7 @@ int main(int argc, char* argv[]) {
         input_info = (InputInfo){
             .total_points = master_points.size,
             .dimensions = master_points.dimensions,
-            .n_clusters = master_clusters.size,
+            .n_centroids = master_clusters.centroids.size,
         };
         master_n_points = safe_malloc(sizeof(*master_n_points) * mpi_nproc);
         master_points_displacements =
@@ -263,14 +262,14 @@ int main(int argc, char* argv[]) {
 
     ClustersCollection clusters = new_clusters_collection(
         &points,
-        input_info.n_clusters,
+        input_info.n_centroids,
         mpi_is_master(mpi_rank) ? master_clusters.centroids.data : NULL
     );
 
     LoopData loop;
     int continue_flag;
     PointsCollection new_centroids = new_points_collection(
-        input_info.n_clusters, input_info.dimensions, NULL
+        input_info.n_centroids, input_info.dimensions, NULL
     );
     if (mpi_is_master(mpi_rank)) {
         loop = create_loop_data(hpc_gettime());
@@ -287,11 +286,11 @@ int main(int argc, char* argv[]) {
             MPI_DEFAULT_COMM
         );
 
-        classify_points(&clusters);
+        classify_points(&clusters, &points);
         MPI_Reduce(
             clusters.counts,
             master_clusters.counts,
-            input_info.n_clusters,
+            input_info.n_centroids,
             MPI_SIZE_T,
             MPI_SUM,
             MPI_MASTER_RANK,
@@ -299,7 +298,7 @@ int main(int argc, char* argv[]) {
         );
         MPI_Gatherv(
             clusters.cluster_of,
-            clusters.points->size,
+            points.size,
             MPI_SIZE_T,
             master_clusters.cluster_of,
             master_n_points,
@@ -311,7 +310,10 @@ int main(int argc, char* argv[]) {
 
         if (mpi_is_master(mpi_rank) && master_args.make_movie) {
             save_movie_iteration(
-                master_args.movie_dir, &master_clusters, loop.iteration
+                master_args.movie_dir,
+                loop.iteration,
+                &master_clusters,
+                &master_points
             );
         }
 
@@ -319,6 +321,7 @@ int main(int argc, char* argv[]) {
             mpi_rank,
             &master_clusters,
             &clusters,
+            &points,
             &new_centroids,
             &loop.maxsqshift
         );
@@ -339,7 +342,7 @@ int main(int argc, char* argv[]) {
 
     if (mpi_is_master(mpi_rank)) {
         finish_loop(stdout, &loop, hpc_gettime());
-        write_output_file(&master_args, &master_clusters);
+        write_output_file(&master_args, &master_clusters, &master_points);
 
         free_clusters_collection(&master_clusters);
         clusters.centroids.data =

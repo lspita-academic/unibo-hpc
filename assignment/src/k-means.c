@@ -11,6 +11,7 @@
 #include "env.h"
 #include "files.h"
 #include "points.h"
+#include "array.h"
 
 #define K_MEANS_MAX_ITER 100
 #define K_MEANS_TOL 1e-5
@@ -95,7 +96,7 @@ ClustersCollection create_clusters(
 ) {
     ClustersCollection clusters =
         new_clusters_collection(points, n_clusters, NULL);
-    init_centroids(&clusters);
+    init_centroids(&clusters, points);
     return clusters;
 }
 
@@ -135,8 +136,42 @@ double finish_loop(FILE* stream, LoopData* loop, double end_time) {
     return elapsed;
 }
 
-void write_output_file(KMeansArgs* args, ClustersCollection* clusters) {
+void write_output_file(
+    KMeansArgs* args, ClustersCollection* clusters, PointsCollection* points
+) {
     FILE* output_file = safe_fopen(args->output_file_path, "w");
-    print_clusters_collection(output_file, clusters);
+    size_t dims = points->dimensions;
+    size_t n_points = points->size;
+    size_t n_centroids = clusters->centroids.size;
+
+    fprintf(output_file, "# Data points: %lu\n", n_points);
+    fprintf(output_file, "# Dimensions: %lu\n", dims);
+    fprintf(output_file, "# Clusters: %lu\n", n_centroids);
+    fprintf(output_file, "# Centroids:\n#\n");
+    for (size_t i = 0; i < n_centroids; i++) {
+        fprintf(output_file, "# %3lu :", i);
+        for (size_t j = 0; j < dims; j++) {
+            size_t idx = flat_index(i, j, dims);
+            fprintf(
+                output_file,
+                " %" POINT_COORD_OUT_FORMAT,
+                clusters->centroids.data[idx]
+            );
+        }
+        fprintf(output_file, "\n");
+    }
+    fprintf(output_file, "#\n");
+    for (size_t i = 0; i < n_points; i++) {
+        for (size_t j = 0; j < dims; j++) {
+            size_t idx = flat_index(i, j, dims);
+            fprintf(
+                output_file,
+                "%" POINT_COORD_OUT_FORMAT " ",
+                points->data[idx]
+            );
+        }
+        fprintf(output_file, "%lu\n", clusters->cluster_of[i]);
+    }
+
     fclose(output_file);
 }
