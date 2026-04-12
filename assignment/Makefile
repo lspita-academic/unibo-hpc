@@ -2,12 +2,13 @@
 comma:=,
 space:=$(empty) $(empty)
 
-# --- parameters ---
-
 define list_with_extra
 $(1)_EXTRA?=
 $(1)?=$(2) $$($(1)_EXTRA)
 endef
+
+
+# --- parameters ---
 
 ## host
 CORES_SET?=
