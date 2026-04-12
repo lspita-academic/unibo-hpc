@@ -224,7 +224,8 @@ Here a complete list of parameters. If anything is missing, the [Makefile](./Mak
 - `CUDA_CFLAGS/CUDA_CFLAGS_EXTRA`: Flags to add when compiling CUDA sources (default: -Wno-deprecated-gpu-targets).
 - `CUDA_LDFLAGS/CUDA_LDFLAGS_EXTRA`: Flags to add when linking CUDA sources (default: none).
 - `BEAR`: Compiler for compiledb (default: bear).
-- `MAKE`: Make program to use when running targets inside targets, e.g. inside the demo target (default: make).
+- `MAKE`: Make program to use when running targets inside targets (default: make).
+- `FFMPEG`: ffmpeg program to use when running the movie targets (default: ffmpeg).
 
 ### Project
 
