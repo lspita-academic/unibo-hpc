@@ -45,6 +45,7 @@ $(eval $(call list_with_extra,CUDA_LDFLAGS,,))
 
 BEAR?=bear
 MAKE?=make
+FFMPEG?=ffmpeg
 
 ## project
 SRC_DIR?=src
@@ -175,19 +176,19 @@ ifneq ($(wildcard $(SERIAL_MAIN)),)
 BUILD_TARGETS+=build-serial
 RUN_TARGETS+=run-serial
 MOVIE_TARGETS+=movie-serial
-SCALING_TARGETS+=scaling-serial
+SCALING_TARGETS+=scaling-serial-weak scaling-serial-strong
 endif
 ifneq ($(wildcard $(OMP_MAIN)),)
 BUILD_TARGETS+=build-omp
 RUN_TARGETS+=run-omp
 MOVIE_TARGETS+=movie-omp
-SCALING_TARGETS+=scaling-omp
+SCALING_TARGETS+=scaling-omp-weak scaling-omp-strong
 endif
 ifneq ($(wildcard $(MPI_MAIN)),)
 BUILD_TARGETS+=build-mpi
 RUN_TARGETS+=run-mpi
 MOVIE_TARGETS+=movie-mpi
-SCALING_TARGETS+=scaling-mpi
+SCALING_TARGETS+=scaling-mpi-weak scaling-mpi-strong
 endif
 ifneq ($(wildcard $(CUDA_MAIN)),)
 BUILD_TARGETS+=build-cuda
@@ -250,7 +251,7 @@ ifneq ($(filter movie-$(1), $(MOVIE_TARGETS)),)
 movie-$(1): $(MOVIE_DIR)/ build-$(1)
 	$(MAKE) run-$(1) MAKE_MOVIE=1 && \
 	$(GENFRAMES_SCRIPT) $(MOVIE_DIR) && \
-	ffmpeg -pattern_type glob -stream_loop 5 -y -r 1 -i "$(MOVIE_DIR)/img_*.png" -vcodec mpeg4 -r 1 $(MOVIE)
+	$(FFMPEG) -pattern_type glob -stream_loop 5 -y -r 1 -i "$(MOVIE_DIR)/img_*.png" -vcodec mpeg4 -r 1 $(MOVIE)
 endif
 endef
 
@@ -260,7 +261,7 @@ $(eval $(call make_movie_target,mpi))
 $(eval $(call make_movie_target,cuda))
 
 define make_scaling_target
-ifneq ($(filter scaling-$(1), $(SCALING_TARGETS)),)
+ifneq ($(filter scaling-$(1)-$(2), $(SCALING_TARGETS)),)
 scaling-$(1)-$(2): $(SCALING_DIR)/ build-$(1) build-inputgen
 	VARIANT=$(1) \
 	SCALING_TYPE=$(2) \
