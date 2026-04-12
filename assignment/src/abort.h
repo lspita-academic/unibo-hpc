@@ -7,10 +7,13 @@
 
 /**
  * Function to exit a program with the given status code.
- * Create a global function pointer of this type named `safe_exit_fn` to
- * override the default exit function used by `safe_exit`.
  */
 typedef void (*safe_exit_fn_t)(int);
+
+/*
+ * Set the exit function used to abort the program.
+ */
+void set_exit_function(safe_exit_fn_t safe_exit_fn);
 
 /**
  * Safely exit with the given status code and message.

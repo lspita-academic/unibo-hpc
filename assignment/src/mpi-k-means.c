@@ -4,6 +4,7 @@
  * defining _XOPEN_SOURCE first allows hpc.h to not be the first header
  * included, so autoformatters can be used.
  */
+#include "abort.h"
 #if _XOPEN_SOURCE < 600
 #define _XOPEN_SOURCE 600
 #endif
@@ -23,6 +24,7 @@
 #include "k-means.h"
 #include "memory.h"
 #include "movie.h"
+#include "mpi-abort.h"
 #include "mpi-points.h"
 #include "mpi-utils.h"
 #include "points.h"
@@ -187,6 +189,9 @@ int main(int argc, char* argv[]) {
     int* master_n_points = NULL;
     int* master_points_displacements = NULL;
 
+    init_random();
+    set_exit_function(mpi_safe_exit);
+
     MPI_Init(&argc, &argv);
     int mpi_rank, mpi_nproc;
     MPI_Comm_rank(MPI_DEFAULT_COMM, &mpi_rank);
@@ -194,7 +199,6 @@ int main(int argc, char* argv[]) {
 
     InputInfo input_info;
     if (mpi_is_master(mpi_rank)) {
-        init_random();
         master_args = get_args(argc, argv);
         master_points = read_input_file(
             master_args.input_file_path, master_args.make_movie

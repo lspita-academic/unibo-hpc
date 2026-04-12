@@ -159,16 +159,6 @@ make clean # cleans all artifacts previously mentioned
 
 ## Notes
 
-### Weak Linking
-
-Weak linking is used to allow different sources to be compiled with different libraries. This allows to check if certain variant-specific functions are available and make decisions on which implementation to use.
-
-To allow weak linking, pragma directives are used instead of gcc attributes to allow for better compatibility with different compilers.
-
-See: [GCC weak linking pragma directive](https://gcc.gnu.org/onlinedocs/gcc/Weak-Pragmas.html).
-
-An example can be found in [abort.c](src/abort.c).
-
 ### Formatting style
 
 The code formatting is based on the Google C++ style guide provided by the [clang-format preset](https://clang.llvm.org/docs/ClangFormatStyleOptions.html#basedonstyle) with slight modifications.

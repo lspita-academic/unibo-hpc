@@ -6,13 +6,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-/**
- * Symbol to override the default exit function used by safe_exit.
- */
-extern safe_exit_fn_t safe_exit_fn;
+safe_exit_fn_t SAFE_EXIT_FN = NULL;
 
-// https://gcc.gnu.org/onlinedocs/gcc/Weak-Pragmas.html
-#pragma weak safe_exit_fn
+void set_exit_function(safe_exit_fn_t safe_exit_fn) {
+    SAFE_EXIT_FN = safe_exit_fn;
+}
 
 /**
  * va_list is a type used for variable function arguments.
@@ -24,8 +22,8 @@ void vsafe_exit(int status, char* message, va_list ap) {
         va_end(ap);
     }
     // use special exit function or default exit
-    if (&safe_exit_fn != NULL) {
-        safe_exit_fn(status);
+    if (SAFE_EXIT_FN != NULL) {
+        SAFE_EXIT_FN(status);
     } else {
         exit(status);
     }
