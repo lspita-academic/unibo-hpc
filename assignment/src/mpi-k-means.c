@@ -121,7 +121,7 @@ void update_centroids(
         size_t idx = flat_index(i, 0, dims);
         if (master_clusters->counts[i] == 0) {
             // cluster is empty, we simply copy the old centroid to the new one
-            points_copy(
+            point_copy(
                 &new_centroids->data[idx],
                 &master_clusters->centroids.data[idx],
                 dims
@@ -147,7 +147,7 @@ void update_centroids(
 
         // master_clusters and clusters centroids data point to the same
         // location in the master process
-        points_copy(
+        point_copy(
             &master_clusters->centroids.data[idx],
             &new_centroids->data[idx],
             dims

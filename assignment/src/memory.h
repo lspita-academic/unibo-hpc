@@ -11,13 +11,13 @@
 void* safe_malloc(size_t size);
 
 /**
- * Free pointer and return NULL.
+ * Free a pointer and return NULL.
  * Useful to do `ptr = safe_free(ptr);`.
  */
 void* safe_free(void* ptr);
 
 /**
- * Reallocate memory pointer, exit on failure.
+ * Reallocate a memory pointer, exit on failure.
  */
 void* safe_realloc(void* ptr, size_t size);
 

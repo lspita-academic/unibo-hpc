@@ -6,10 +6,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-safe_exit_fn_t SAFE_EXIT_FN = NULL;
+safe_exit_fn_t __SAFE_EXIT_FN = NULL;
 
 void set_exit_function(safe_exit_fn_t safe_exit_fn) {
-    SAFE_EXIT_FN = safe_exit_fn;
+    __SAFE_EXIT_FN = safe_exit_fn;
 }
 
 /**
@@ -22,8 +22,8 @@ void vsafe_exit(int status, char* message, va_list ap) {
         va_end(ap);
     }
     // use special exit function or default exit
-    if (SAFE_EXIT_FN != NULL) {
-        SAFE_EXIT_FN(status);
+    if (__SAFE_EXIT_FN != NULL) {
+        __SAFE_EXIT_FN(status);
     } else {
         exit(status);
     }

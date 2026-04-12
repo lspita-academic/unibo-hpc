@@ -9,6 +9,9 @@
 #include "abort.h"
 #include "memory.h"
 
+#define READLINE_START_CAPACITY 1024
+#define READLINE_CAPACITY_GROWTH_FACTOR 2
+
 FILE* safe_fopen(char* path, char* mode) {
     FILE* file = fopen(path, mode);
     safe_assert(
@@ -27,8 +30,6 @@ void safe_fclose(FILE* file) {
 }
 
 size_t read_file_line(FILE* stream, char** out_buffer) {
-#define READLINE_START_CAPACITY 1024
-#define READLINE_CAPACITY_GROWTH_FACTOR 2
     size_t total_len = 0;
     size_t capacity = READLINE_START_CAPACITY;
     char* row_buff = out_buffer == NULL || *out_buffer == NULL

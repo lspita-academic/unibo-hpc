@@ -22,11 +22,14 @@ PointsCollection new_points_collection(
     };
 }
 
-void update_dimensions(
-    size_t current_dims, size_t* out_points, size_t* out_dims
+/*
+ * Check and update the point collection metadata.
+ */
+void update_metadata(
+    size_t current_dims, size_t* out_n_points, size_t* out_dims
 ) {
     size_t dims = *out_dims;
-    size_t points = *out_points;
+    size_t n_points = *out_n_points;
 
     if (dims == 0) {
         dims = current_dims;
@@ -39,17 +42,20 @@ void update_dimensions(
             dims
         );
     }
-    points++;
+    n_points++;
 
-    *out_points = points;
+    *out_n_points = n_points;
     *out_dims = dims;
 }
 
-void read_points_collection_dimensions(
-    FILE* stream, size_t* out_points, size_t* out_dims
+/*
+ * Read the points collection metadata needed to create the collection.
+ */
+void read_points_collection_metadata(
+    FILE* stream, size_t* out_n_points, size_t* out_dims
 ) {
     char* row_buffer = NULL;
-    size_t points = 0;
+    size_t n_points = 0;
     size_t dims = 0;
 
     size_t current_dims = 0;
@@ -80,26 +86,26 @@ void read_points_collection_dimensions(
             item_offset += item_chars;
         }
 
-        update_dimensions(current_dims, &points, &dims);
+        update_metadata(current_dims, &n_points, &dims);
         current_dims = 0;
     }
     row_buffer = safe_free(row_buffer);
 
     // Handle last row finishing with EOF instead of newline
     if (current_dims > 0) {
-        update_dimensions(current_dims, &points, &dims);
+        update_metadata(current_dims, &n_points, &dims);
     }
 
-    *out_points = points;
+    *out_n_points = n_points;
     *out_dims = dims;
 }
 
 point_coord* read_points_collection_items(
-    FILE* stream, size_t points, size_t dims
+    FILE* stream, size_t n_points, size_t dims
 ) {
-    point_coord* items = safe_malloc(sizeof(*items) * points * dims);
+    point_coord* items = safe_malloc(sizeof(*items) * n_points * dims);
 
-    for (size_t i = 0; i < points * dims; i++) {
+    for (size_t i = 0; i < n_points * dims; i++) {
         int nread = fscanf(stream, "%" POINT_COORD_IN_FORMAT, &items[i]);
         safe_assert(nread == 1, "Failed to read input file item\n");
     }
@@ -107,14 +113,14 @@ point_coord* read_points_collection_items(
 }
 
 PointsCollection read_points_collection(FILE* stream) {
-    size_t points = 0;
+    size_t n_points = 0;
     size_t dims = 0;
 
-    read_points_collection_dimensions(stream, &points, &dims);
+    read_points_collection_metadata(stream, &n_points, &dims);
     rewind(stream);
-    point_coord* items = read_points_collection_items(stream, points, dims);
+    point_coord* items = read_points_collection_items(stream, n_points, dims);
 
-    return new_points_collection(points, dims, items);
+    return new_points_collection(n_points, dims, items);
 }
 
 void free_points_collection(PointsCollection* points) {
@@ -132,7 +138,18 @@ void print_points_collection(FILE* stream, PointsCollection* points) {
     }
 }
 
-void points_copy(point_coord* dest, point_coord* src, size_t dimensions) {
+void point_copy(point_coord* dest, point_coord* src, size_t dimensions) {
+    /*
+     * `memcpy` is thread-safe and allows to copy the data in one operation.
+     * From memcpy(3) man pages:
+     * ATTRIBUTES
+     *      For an explanation of the terms used in this section, see attributes(7).
+     *      ┌───────────┬───────────────┬─────────┐
+     *      │ Interface │ Attribute     │ Value   │
+     *      ├───────────┼───────────────┼─────────┤
+     *      │ memcpy()  │ Thread safety │ MT-Safe │
+     *      └───────────┴───────────────┴─────────┘
+     */
     memcpy(dest, src, sizeof(*dest) * dimensions);
 }
 
@@ -147,6 +164,17 @@ point_distance points_distance(
 }
 
 void zero_point(point_coord* p, size_t dimensions) {
+    /*
+     * `memset` is thread-safe and allows to set the data in one operation.
+     * From memset(3) man pages:
+     * ATTRIBUTES
+     *      For an explanation of the terms used in this section, see attributes(7).
+     *      ┌───────────┬───────────────┬─────────┐
+     *      │ Interface │ Attribute     │ Value   │
+     *      ├───────────┼───────────────┼─────────┤
+     *      │ memset()  │ Thread safety │ MT-Safe │
+     *      └───────────┴───────────────┴─────────┘
+     */
     memset(p, 0, sizeof(*p) * dimensions);
 }
 

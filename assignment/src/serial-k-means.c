@@ -83,7 +83,7 @@ void update_centroids(
         size_t idx = flat_index(i, 0, dims);
         if (clusters->counts[i] == 0) {
             // cluster is empty, we simply copy the old centroid to the new one
-            points_copy(
+            point_copy(
                 &new_centroids->data[idx], &clusters->centroids.data[idx], dims
             );
         } else {
@@ -101,7 +101,7 @@ void update_centroids(
             *out_maxsqshift = sqshift;
         }
 
-        points_copy(
+        point_copy(
             &clusters->centroids.data[idx], &new_centroids->data[idx], dims
         );
     }

@@ -42,7 +42,7 @@ void init_centroids(ClustersCollection* clusters, PointsCollection* points) {
             /* Select point `i` as one of the centroids. */
             size_t select_idx = flat_index(select, 0, dims);
             size_t idx = flat_index(i, 0, dims);
-            points_copy(
+            point_copy(
                 &clusters->centroids.data[select_idx],
                 &points->data[idx],
                 dims

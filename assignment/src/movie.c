@@ -10,6 +10,9 @@
 
 #define MOVIE_FILENAME_BUFF_SIZE 1024
 
+/**
+ * Save the centroids data to the output file.
+ */
 void save_centroids(
     FILE* stream, ClustersCollection* clusters
 ) {
@@ -29,6 +32,9 @@ void save_centroids(
     }
 }
 
+/**
+ * Save the points and corresponding cluster to the output file.
+ */
 void save_points_and_clusters(
     FILE* stream, ClustersCollection* clusters, PointsCollection* points
 ) {

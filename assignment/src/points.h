@@ -61,7 +61,7 @@ void print_points_collection(FILE* stream, PointsCollection* points);
 /**
  * Copy a point from `src` to `dest`.
  */
-void points_copy(point_coord* dest, point_coord* src, size_t dimensions);
+void point_copy(point_coord* dest, point_coord* src, size_t dimensions);
 
 /**
  * Compute the euclidean squared distance between two points.

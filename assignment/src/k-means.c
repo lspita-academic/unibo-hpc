@@ -13,12 +13,13 @@
 #include "points.h"
 #include "array.h"
 
-#define K_MEANS_MAX_ITER 100
-#define K_MEANS_TOL 1e-5
 #define FORCE_ITERATIONS_ENV_VAR "FORCE_ITERATIONS"
 #define MAKE_MOVIE_ENV_VAR "MAKE_MOVIE"
 #define MOVIE_DIR_ENV_VAR "MOVIE_DIR"
 
+/*
+ * Check that the cli arg is a valid string.
+ */
 char* check_cli_arg(char* arg, char* arg_name) {
     safe_assert(
         strlen(arg) > 0, "Invalid argument %s: value is empty\n", arg_name

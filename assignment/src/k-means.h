@@ -8,6 +8,9 @@
 #include "clusters.h"
 #include "points.h"
 
+#define K_MEANS_MAX_ITER 100
+#define K_MEANS_TOL 1e-5
+
 /**
  * K-means clustering algorithm arguments.
  */
@@ -29,7 +32,7 @@ typedef struct LoopData {
 } LoopData;
 
 /**
- * Get algorithm arguments.
+ * Get the algorithm arguments.
  */
 KMeansArgs get_args(int argc, char* argv[]);
 
@@ -39,32 +42,34 @@ KMeansArgs get_args(int argc, char* argv[]);
 PointsCollection read_input_file(char* input_file_path, bool make_movie);
 
 /**
- * Print algorithm arguments.
+ * Print the algorithm inputs.
  */
 void print_inputs(FILE* stream, KMeansArgs* args, PointsCollection* points);
 
 /**
- * Create and initialize clusters collection.
+ * Create and initialize a clusters collection.
  */
 ClustersCollection create_clusters(size_t n_clusters, PointsCollection* points);
 
 /**
- * Create and initialize loop data.
+ * Create and initialize the loop data.
  */
 LoopData create_loop_data(double start_time);
 
 /**
- * Reset loop data for new iteration.
+ * Reset the loop data for new iteration.
  */
 void reset_iteration(LoopData* loop);
 
 /**
- * Print iteration data.
+ * Print the current iteration loop data.
  */
 void print_iteration(FILE* stream, LoopData* loop);
 
 /**
  * Check if the loop should continue.
+ * If `force_iterations` is true, the tolerance is ignored and all
+ * `K_MEANS_MAX_ITER` iterations will be done.
  */
 bool continue_loop(
     LoopData* loop,
@@ -74,12 +79,12 @@ bool continue_loop(
 );
 
 /**
- * End loop and return the elapsed time.
+ * End the loop and return the elapsed time.
  */
 double finish_loop(FILE* stream, LoopData* loop, double end_time);
 
 /**
- * Write algorithm results to the output file.
+ * Write the algorithm results to the output file.
  */
 void write_output_file(
     KMeansArgs* args, ClustersCollection* clusters, PointsCollection* points

@@ -6,8 +6,9 @@
 #include "points.h"
 
 /**
- * Collection of `size` clusters related to the `points` collection.
- * The centroid of each cluster is stored in the `centroids` array.
+ * Collection of clusters.
+ * The `centroids` array contains the centroid of each cluster, and its size
+ * indicates the number of clusters.
  * The `cluster_of` array stores the cluster index of each point.
  * The `counts` array stores the number of points in each cluster.
  */
@@ -26,14 +27,8 @@ ClustersCollection new_clusters_collection(
 
 /**
  * Free the memory allocated for the fields of a `ClustersCollection`.
- * Associated point collection will not be freed.
  */
 void free_clusters_collection(ClustersCollection* clusters);
-
-/**
- * Print a `ClustersCollection` to a file stream.
- */
-void print_clusters_collection(FILE* stream, ClustersCollection* clusters);
 
 /**
  * Initialize the centroids of a `ClustersCollection`.

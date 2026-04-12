@@ -12,6 +12,9 @@
 
 #define MPI_SIZE_T MPI_UNSIGNED_LONG
 
+/*
+ * Check if the current mpi process is the master.
+ */
 bool mpi_is_master(int rank);
 
 #endif // MPI_UTILS_H
