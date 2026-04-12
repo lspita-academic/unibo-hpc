@@ -186,10 +186,6 @@ make compiledb-full # cleans build artifacts and recompiles all sources for a cl
 
 This target requires [bear](https://github.com/rizsotto/Bear) to be installed.
 
-Here's the diff: the **Scaling** subsection in Parameters only has `SCALING_BASE_POINTS`, but the Makefile has 5 more scaling vars. Also `MPI_CFLAGS`, `MPI_LDFLAGS`, `CUDA_CFLAGS`, `CUDA_LDFLAGS` all use `list_with_extra` so they should be documented with their `_EXTRA` variants. Here's the full section to paste:
-
----
-
 ### Parameters
 
 The parameters used by the targets are simple makefile variables. They can be overriden with environment variables using the same name or by providing them after the target name.
