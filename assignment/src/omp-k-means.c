@@ -44,7 +44,7 @@ void classify_points(ClustersCollection* clusters, PointsCollection* points) {
             size_t idx = flat_index(i, 0, dims);
             size_t jdx = flat_index(j, 0, dims);
 
-            point_coord dist = points_distance(
+            point_coord dist = points_squared_distance(
                 &points->data[idx], &clusters->centroids.data[jdx], dims
             );
             if (dist < mindist) {
@@ -102,7 +102,7 @@ void update_centroids(
         }
 
         // calculate the shift
-        point_distance sqshift = points_distance(
+        point_distance sqshift = points_squared_distance(
             &clusters->centroids.data[idx], &new_centroids_data[idx], dims
         );
         if (sqshift > *out_maxsqshift) {

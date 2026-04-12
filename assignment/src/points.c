@@ -153,7 +153,7 @@ void point_copy(point_coord* dest, point_coord* src, size_t dimensions) {
     memcpy(dest, src, sizeof(*dest) * dimensions);
 }
 
-point_distance points_distance(
+point_distance points_squared_distance(
     point_coord* p1, point_coord* p2, size_t dimensions
 ) {
     point_distance distance = 0.0;

@@ -66,7 +66,7 @@ void point_copy(point_coord* dest, point_coord* src, size_t dimensions);
 /**
  * Compute the euclidean squared distance between two points.
  */
-point_distance points_distance(
+point_distance points_squared_distance(
     point_coord* p1, point_coord* p2, size_t dimensions
 );
 
