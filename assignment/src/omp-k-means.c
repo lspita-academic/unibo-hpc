@@ -105,7 +105,7 @@ void update_centroids(
     for (size_t i = 0; i < n_centroids; i++) {
         size_t idx = flat_index(i, 0, dims);
         if (clusters->counts[i] == 0) {
-            // cluster is empty, we simply copy the old centroid to the new one
+            // cluster is empty, copy the old centroid to the new one
             point_copy(
                 &new_centroids_data[idx], &clusters->centroids.data[idx], dims
             );
@@ -164,6 +164,10 @@ int main(int argc, char* argv[]) {
              * classification of points since it's not used in this function.
              * This allows to reuse the already needed single threaded region to
              * avoid adding an extra pragma.
+             * Another way would be to perform the reset in a `master` or
+             * `single nowait` region, since these types of single-threaded
+             * regions don't have an implicit barrier at the end, making the
+             * performance difference negligible.
              */
             classify_points(&clusters, &points);
 
@@ -175,7 +179,8 @@ int main(int argc, char* argv[]) {
              */
 #pragma omp single
             {
-                reset_iteration(&loop);  // reset of the iteration moved here
+                // reset of the iteration since it was not done before
+                reset_iteration(&loop);
                 if (args.make_movie) {
                     save_movie_iteration(
                         args.movie_dir, loop.iteration, &clusters, &points

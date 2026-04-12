@@ -85,7 +85,7 @@ void update_centroids(
     for (size_t i = 0; i < n_centroids; i++) {
         size_t idx = flat_index(i, 0, dims);
         if (clusters->counts[i] == 0) {
-            // cluster is empty, we simply copy the old centroid to the new one
+            // cluster is empty, copy the old centroid to the new one
             point_copy(
                 &new_centroids->data[idx], &clusters->centroids.data[idx], dims
             );
