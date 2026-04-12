@@ -372,5 +372,5 @@ $(BUILD_DIR)/%.o: $$(wildcard $(SRC_DIR)/%.c $(SRC_DIR)/%.cu) $(BUILD_DIR)/%.d |
 	$(CC) $(CFLAGS) -c $< -o $@
 
 # compile binaries
-$(BIN_DIR)/%: $(BUILD_DIR)/%.o $$(COMMON_OBJS) $$(EXTRA_OBJS) | $(BIN_DIR)/
+$(BINS): $(BIN_DIR)/%: $(BUILD_DIR)/%.o $$(COMMON_OBJS) $$(EXTRA_OBJS) | $(BIN_DIR)/
 	$(CC) $(LDFLAGS) $^ -o $@
