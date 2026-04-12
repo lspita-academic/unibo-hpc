@@ -57,8 +57,8 @@ for p in $(seq 1 $MAX_UNITS); do
             1>/dev/null
     fi
 
-    echo -n -e "$p\t"
-    echo -n -e "$INPUT_POINTS\t"
+    echo -n -e "$p"
+    echo -n -e "\t$INPUT_POINTS"
     for rep in `seq $NREPS`; do
         OUTPUT_FILE=${FILE_BASENAME}-${SCALING_TYPE}-${VARIANT}-K${INPUT_CLUSTERS}-P${p}-R${rep}.out
         EXEC_TIME="$(
@@ -66,7 +66,7 @@ for p in $(seq 1 $MAX_UNITS); do
             grep "Elapsed seconds: " | \
             sed 's/Elapsed seconds: //' \
         )"
-        echo -n -e "${EXEC_TIME}\t"
+        echo -n -e "\t${EXEC_TIME}"
     done
     echo ""
 done
