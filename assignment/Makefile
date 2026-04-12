@@ -316,7 +316,7 @@ demo-input: $(DEMO_INPUT)
 CFLAGS+=-I$(INCLUDE_DIR)
 
 # create directories
-$(BUILD_DIR)/ $(BIN_DIR)/ $(MOVIE_DIR)/ $(TESTS_DIR)/:
+$(BUILD_DIR)/ $(BIN_DIR)/ $(MOVIE_DIR)/ $(SCALING_DIR)/:
 	mkdir -p $@
 
 # create demo files
