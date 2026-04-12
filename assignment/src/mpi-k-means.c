@@ -92,7 +92,7 @@ void update_centroids(
      * Raw point coord type is used instead of custom point mpi type to avoid
      * the creation of a custom reduce operation.
      *
-     * From man pages of MPI_Reduce:
+     * From MPI_REDUCE(3) man pages:
      * USE OF IN-PLACE OPTION
      * When the communicator is an intracommunicator, you can perform a reduce
      * operation in-place (the output buffer is used as the input buffer). Use

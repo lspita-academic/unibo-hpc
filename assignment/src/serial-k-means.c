@@ -79,7 +79,6 @@ void update_centroids(
     for (size_t i = 0; i < n_points; i++) {
         size_t idx = flat_index(i, 0, dims);
         size_t cluster_idx = flat_index(clusters->cluster_of[i], 0, dims);
-
         points_add(&new_centroids->data[cluster_idx], &points->data[idx], dims);
     }
 
@@ -97,7 +96,7 @@ void update_centroids(
             );
         }
 
-        // calculate the shift and store the greatest one
+        // calculate the shift and store the max shift
         point_distance sqshift = points_squared_distance(
             &clusters->centroids.data[idx], &new_centroids->data[idx], dims
         );
@@ -113,17 +112,17 @@ void update_centroids(
 }
 
 int main(int argc, char* argv[]) {
-    // initialize the data
+    // initialize all data
     init_random();
     KMeansArgs args = get_args(argc, argv);
     PointsCollection points =
         read_input_file(args.input_file_path, args.make_movie);
     print_inputs(stdout, &args, &points);
     ClustersCollection clusters = create_clusters(args.n_clusters, &points);
-
-    // start the loop
     PointsCollection new_centroids =
         new_points_collection(clusters.centroids.size, points.dimensions, NULL);
+
+    // start the loop
     LoopData loop = create_loop_data(hpc_gettime());
     do {
         reset_iteration(&loop);
@@ -146,7 +145,7 @@ int main(int argc, char* argv[]) {
     finish_loop(stdout, &loop, hpc_gettime());
     write_output_file(&args, &clusters, &points);
 
-    // free the date
+    // free remaining data
     free_clusters_collection(&clusters);
     free_points_collection(&points);
 

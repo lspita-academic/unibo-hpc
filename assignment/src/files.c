@@ -40,7 +40,7 @@ size_t read_file_line(FILE* stream, char** out_buffer) {
      * `fgets` could stop before then newline/EOF if the buffer is not large
      * enough.
      *
-     * From `fgets` man pages:
+     * From fgetc(3) man pages:
      * fgets() reads in at most one less than size characters from stream
      * and stores them into the buffer  pointed to  by s. Reading stops
      * after an EOF or a newline. If a newline is read, it is stored into
